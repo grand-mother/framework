@@ -47,22 +47,47 @@ def mkdir(path):
         os.makedirs(path)
 
 
-def write_readme(path, title, description):
+def write_readme(path, git_name, dist_name, title, description):
     """Write a default README file"""
 
     content = """\
-# {:}
-_{:}_
+# {title:}
+_{description:}_
 
 ## Description
 
 <!-- Add here a description of the package -->
 
+
+## Installation
+
+The latest stable version of this package can be installed from [PyPi][PYPI]
+using [pip][PIP], e.g. as:
+```bash
+pip install --user {dist_name:}
+```
+
+Alternatively one can also install the latest development commit directly from
+[GitHub][GITHUB], as:
+```bash
+pip install --user git+https://github.com/grand-mother/{git_name:}.git@master
+```
+
+
 ## License
 
 The GRAND software is distributed under the LGPL-3.0 license. See the provided
-[`LICENSE`](LICENSE) and [`COPYING.LESSER`](COPYING.LESSER) files.
-""".format(title, description)
+[`LICENSE`][LICENSE] and [`COPYING.LESSER`][COPYING] files.
+
+
+[COPYING]: https://github.com/grand-mother/{git_name:}/blob/master/COPYING.LESSER
+[GITHUB]: https://github.com/grand-mother/{git_name:}
+[LICENSE]: https://github.com/grand-mother/{git_name:}/blob/master/LICENSE
+[PIP]: https://pypi.org/project/pip
+[PYPI]: https://pypi.org/project/{dist_name:}
+""".format(
+        title=title, description=description, git_name=git_name,
+        dist_name=dist_name)
 
     with open(path, "w") as f:
         f.write(content)
@@ -191,12 +216,16 @@ def main():
         if not description:
             description = "Add a brief description"
         git_name = package_name.replace("_", "-")
+        if git_name.startswith("grand-"):
+            dist_name = git_name
+        else:
+            dist_name = "grand-" + git_name
 
         # Write a default README
         title = package_name.replace("_", " ").replace("-", " ").capitalize()
-        write_readme(path, title, description)
+        write_readme(path, git_name, dist_name, title, description)
     else:
-        package_name, git_name, _ = parse_readme(path)
+        package_name, _, _ = parse_readme(path)
 
     # Initialise the source
     src_dir = os.path.join(package_dir, package_name)
