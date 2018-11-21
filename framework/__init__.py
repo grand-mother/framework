@@ -24,6 +24,4 @@ except ImportError:
     __githash__ = None
 
 # Public modules
-import hooks
-import init
-import setup
+from .setup import *

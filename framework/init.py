@@ -110,7 +110,7 @@ def write_setup(path):
     content = """\
 # -*- coding: utf-8 -*-
 
-from framework.setup import setup_package
+from framework import setup_package
 
 
 # The package version

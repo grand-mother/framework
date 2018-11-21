@@ -1,11 +1,11 @@
 # Framework
-_Common framework tools for GRAND packages_
+_Common framework for GRAND packages_
 
 
 ## Description
 
-This is a utility repository providing common framework tools for GRAND
-packages.
+This is a utility providing a common framework for managing and distributing
+GRAND packages.
 
 ## License
 

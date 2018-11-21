@@ -49,7 +49,8 @@ def make_version_module(package, version):
         out, _ = p.communicate()
         return out
 
-    if system("git status --porcelain"):
+    status = system("git status --porcelain")
+    if status and not ("pip-delete-this-directory.txt" in str(status)):
         raise RuntimeError("Dirty git status")
 
     githash = system("git rev-parse HEAD").strip()

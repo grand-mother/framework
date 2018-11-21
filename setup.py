@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from framework.setup import setup_package
+from framework import setup_package
 
 
 # The package version
@@ -23,6 +23,10 @@ if __name__ == "__main__":
         __file__, (MAJOR, MINOR, MICRO), EXTRA_CLASSIFIERS,
 
         # Vanilla setuptools.setup arguments
+        install_requires = (
+            "setuptools>=40.0.0",
+            "wheel>=0.32.0"
+        ),
         entry_points = {
             "console_scripts" : (
                 "grand-pkg-init=framework.init:main",
