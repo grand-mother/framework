@@ -21,4 +21,5 @@ except ImportError:
     __version__ = None
     __githash__ = None
 
-from .setup import *
+import hooks
+import setup

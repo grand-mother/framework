@@ -13,8 +13,7 @@ from setuptools import setup, find_packages
 __all__ = [ "setup_package" ]
 
 
-CLASSIFIERS = """\
-Development Status :: 3 - Alpha
+DEFAULT_CLASSIFIERS = """\
 Intended Audience :: Science/Research
 License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)
 Programming Language :: Python :: 2.7
@@ -24,23 +23,12 @@ Operating System :: Unix
 Operating System :: MacOS
 """
 
-MAJOR = 0
-MINOR = 0
-MICRO = 0
-
 
 _PACKAGE_DIR = "."
 
 
-def get_version():
-    """Format the package version"""
-    return "{:d}.{:d}.{:d}".format(MAJOR, MINOR, MICRO)
-
-
-def make_version(package):
+def make_version_module(package, version):
     """Build the version.py module for the distribution"""
-
-    version = get_version()
 
     def system(cmd):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
@@ -117,7 +105,7 @@ class DistClean(Command):
             remove_directory(path)
 
 
-def setup_package(file_):
+def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
     # Check the setup command
     try:
         command = sys.argv[1]
@@ -130,22 +118,27 @@ def setup_package(file_):
     global _PACKAGE_DIR
     _PACKAGE_DIR = os.path.abspath(os.path.dirname(file_))
 
+    # Format the version string
+    version = "{:d}.{:d}.{:d}".format(*numeric_version)
+
     # Parse some top level meta data from the README.md
     package_name, git_name, meta = parse_meta()
 
-    if clean:
-        version = get_version() 
-    else:
+    if not clean:
         # Make the version module. Note that this will check the git
         # status as Well
-        make_version(package_name)
+        make_version_module(package_name, version)
  
         # Sanity check: import the package
         sys.path.append(_PACKAGE_DIR)
         package = __import__(package_name)
-        version = package.__version__
 
-    # Extra meta data
+    # Merge the classifiers
+    all_classifiers = [s for s in DEFAULT_CLASSIFIERS.splitlines() if s]
+    if extra_classifiers is not None:
+        all_classifiers += extra_classifiers
+
+    # Extra framework meta data
     meta.update(dict(
         # The author(s) of the package
         author = "The GRAND collaboration",
@@ -157,26 +150,17 @@ def setup_package(file_):
         # The package description
         version = version,
         url = "https://github.com/grand-mother/" + git_name,
-        packages = find_packages(),
+        packages = find_packages(_PACKAGE_DIR),
         long_description = open(os.path.join(_PACKAGE_DIR, "README.md")).read(),
         long_description_content_type = "text/markdown",
         include_package_data = True,
-
-        # Meta data can be added here. For a full list of classifiers, see:
-        # https://pypi.org/pypi?%3Aaction=list_classifiers
-        classifiers = [s for s in CLASSIFIERS.splitlines() if s],
-
-        # Dependencies are declared here together with compatible versions.
-        install_requires = "",
-
-        # Executables are registered here
-        entry_points = {
-            "console_scripts" : (
-                "template-executable=template.executable:main",)
-        },
+        classifiers = all_classifiers,
 
         cmdclass = { "distclean" : DistClean }
     ))
+
+    # User meta data
+    meta.update(kwargs)
 
     # Call the setup tool
     setup(**meta)
