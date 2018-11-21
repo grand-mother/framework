@@ -1,11 +1,25 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#  Copyright (C) 2018 The GRAND collaboration
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>
 import glob
 import os
 import shutil
 import subprocess
 import sys
+
 from distutils.core import Command
 from setuptools import setup, find_packages
 
@@ -54,12 +68,15 @@ def make_version_module(package, version):
         f.write(content)
 
 
-def parse_meta():
+def parse_readme(path=None):
     """Parse some meta data from the README.md"""
+
+    if path is None:
+        path = os.path.join(_PACKAGE_DIR, "docs/README.md")
 
     meta = {}
     package_name = None
-    with open(os.path.join(_PACKAGE_DIR, "docs/README.md"), "r") as f:
+    with open(path, "r") as f:
         for line in f:
             if line.startswith("#"):
                 package_name = line[1:].strip().lower().replace(" ", "_")
@@ -143,7 +160,7 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
     version = "{:d}.{:d}.{:d}".format(*numeric_version)
 
     # Parse some top level meta data from the README.md
-    package_name, git_name, meta = parse_meta()
+    package_name, git_name, meta = parse_readme()
 
     if not clean:
         # Make the version module. Note that this will check the git

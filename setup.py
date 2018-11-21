@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from framework.setup import setup_package
 
 
@@ -23,6 +25,10 @@ if __name__ == "__main__":
         # Vanilla setuptools.setup arguments
         entry_points = {
             "console_scripts" : (
+                "gfw-init=framework.init:main",
                 "gfw-pre-commit=framework.hooks:pre_commit",)
-        }
+        },
+        data_files = [("data", [
+            "LICENSE", "COPYING.LESSER", "MANIFEST.in", ".gitignore",
+            ".travis.yml"])]
     )
