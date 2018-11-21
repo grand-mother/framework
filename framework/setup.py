@@ -104,6 +104,27 @@ class DistClean(Command):
         for path in glob.glob("*.egg-info"):
             remove_directory(path)
 
+        # Remove bytecode and version module
+        packages = find_packages(_PACKAGE_DIR)
+        if len(packages) != 1:
+            return
+
+        source_dir = os.path.join(_PACKAGE_DIR, packages[0])
+        if not os.path.exists(source_dir):
+            return
+        print("cleaning " + packages[0] + " source")
+
+        path = os.path.join(source_dir, "version.py")
+        if os.path.exists(path):
+            os.remove(path)
+
+        for root, _, files in os.walk(source_dir):
+            for file_ in files:
+                _, ext = os.path.splitext(file_)
+                if ext in (".pyc", ".pyo"):
+                    path = os.path.join(root, file_)
+                    os.remove(path)
+
 
 def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
     # Check the setup command
