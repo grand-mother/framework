@@ -1,0 +1,11 @@
+#!/usr/bin/env python 
+import os
+
+
+def touch(fname):
+    with open(fname, "a"):
+        os.utime(fname, None)
+
+
+if __name__ == "__main__":
+    touch(".commit")
