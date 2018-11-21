@@ -22,7 +22,7 @@ import sys
 
 from distutils.spawn import find_executable
 from setuptools import setup, find_packages
-from .setup import parse_readme
+from setup import parse_readme
 
 __all__ = [ "main" ]
 
@@ -30,7 +30,7 @@ __all__ = [ "main" ]
 def get_data_dir():
     """Get the absolute path to the package data files"""
     path = os.path.dirname(__file__)
-    path = os.path.join(path, "..", "data")
+    path = os.path.join(path, "..")
     return os.path.abspath(path)
 
 
@@ -217,12 +217,12 @@ def main():
         os.system("git init " + package_dir)
         commit = True
     else:
-        commit = false
+        commit = False
 
     # Add git hooks
     path = os.path.join(git_dir, "hooks", "pre-commit")
     if not os.path.exists(path):
-        exe_name = "gfw-pre-commit"
+        exe_name = "grand-pre-commit"
         exe_path = find_executable(exe_name)
         if not exe_path:
             raise RuntimeWarning("could not locate " + exe_name)
@@ -239,3 +239,7 @@ def main():
             command.append("git add " + file_)
         command.append("git commit -m 'Initial commit'")
         os.system(" && ".join(command))
+
+
+if __name__ == "__main__":
+    main()

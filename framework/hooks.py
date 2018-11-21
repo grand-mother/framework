@@ -69,3 +69,8 @@ def pre_commit():
     """Git hook for pre-processing a commit"""
     update_readme()
     sys.exit(0)
+
+
+if __name__ == "__main__":
+    # Get the function to call from the command line
+    globals()[sys.argv[1]]()

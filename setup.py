@@ -25,10 +25,10 @@ if __name__ == "__main__":
         # Vanilla setuptools.setup arguments
         entry_points = {
             "console_scripts" : (
-                "gfw-init=framework.init:main",
-                "gfw-pre-commit=framework.hooks:pre_commit",)
+                "grand-pkg-init=framework.init:main",
+                "grand-pre-commit=framework.hooks:pre_commit",)
         },
-        data_files = [("data", [
+        data_files = [(".", [
             "LICENSE", "COPYING.LESSER", "MANIFEST.in", ".gitignore",
             ".travis.yml"])]
     )
