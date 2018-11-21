@@ -20,7 +20,7 @@ env:
     - PATH=/home/travis/.local/bin/:$PATH
 
 install:
-  - python framework/setup.py install --user --prefix=
+  - python setup.py install --user --prefix=
 
 script:
-  - python framework/setup.py distclean
+  - python setup.py distclean
