@@ -166,6 +166,26 @@ if __name__ == "__main__":
         f.write(content)
 
 
+def add_git_hook(git_dir, hook_name):
+    """Add a hook for managing git workflow"""
+
+    exe_name = "grand-git-" + hook_name
+    exe_path = find_executable(exe_name)
+    if not exe_path:
+        msg = ( "Warning: could not locate " + exe_name,
+                "  Hook has not been installed",
+                "")
+        sys.stderr.write(os.linesep.join(msg))
+        return
+
+    path = os.path.join(git_dir, "hooks", hook_name)
+    try:
+        os.remove(path)
+    except OSError:
+        pass
+    os.symlink(exe_path, path)
+
+
 def main():
     """Parse CLI arguments and initialise a local package"""
 
@@ -248,14 +268,9 @@ def main():
     else:
         commit = False
 
-    # Add git hooks
-    path = os.path.join(git_dir, "hooks", "pre-commit")
-    if not os.path.exists(path):
-        exe_name = "grand-pre-commit"
-        exe_path = find_executable(exe_name)
-        if not exe_path:
-            raise RuntimeWarning("could not locate " + exe_name)
-        os.symlink(exe_path, path)
+    # Add hooks for git
+    add_git_hook(git_dir, "pre-commit")
+    add_git_hook(git_dir, "prepare-commit-msg")
 
     # Do the initial commit
     if commit:

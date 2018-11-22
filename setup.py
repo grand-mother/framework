@@ -30,7 +30,9 @@ if __name__ == "__main__":
         entry_points = {
             "console_scripts" : (
                 "grand-pkg-init=framework.init:main",
-                "grand-pre-commit=framework.hooks:pre_commit",)
+                "grand-git-pre-commit=framework.hooks:pre_commit",
+                "grand-git-prepare-commit-msg=framework.hooks:"
+                    "prepare_commit_msg",)
         },
         data_files = [(".", [
             "LICENSE", "COPYING.LESSER", "MANIFEST.in", ".gitignore",

@@ -19,6 +19,7 @@ import os
 import subprocess
 import sys
 
+from version import __version__
 
 __all__ = ["pre_commit"]
 
@@ -65,9 +66,35 @@ version](https://img.shields.io/pypi/v/framework.svg)](https://pypi.org/project/
     git("add","README.md")
 
 
+def add_banner(msg):
+    """Add a banner to git commit messages"""
+
+    head, tail = msg.split("#", 1)
+
+    return """{:}\
+# =================================================================
+#      This commit has been analysed by grand-framework {:}
+# =================================================================
+#{:}
+""".format(head, __version__, tail)
+
+
 def pre_commit():
     """Git hook for pre-processing a commit"""
     update_readme()
+    sys.exit(0)
+
+
+def prepare_commit_msg():
+    """Git hook for preparing the commit message"""
+    with open(sys.argv[1], "r") as f:
+        initial_msg = f.read()
+
+    msg = add_banner(initial_msg)
+
+    if msg is not initial_msg:
+        with open(sys.argv[1], "w") as f:
+            f.write(msg)
     sys.exit(0)
 
 
