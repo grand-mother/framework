@@ -3,10 +3,9 @@
     Beware: any change to this file will be overwritten at next commit.
     One should edit the docs/README.md file instead.
 -->
-[![PyPI
-version](https://img.shields.io/pypi/v/framework.svg)](https://pypi.org/project/framework)
-![Python version](https://img.shields.io/badge/Python-2.7-brightgreen.svg)
-![Coding style](https://img.shields.io/badge/style-PEP8-blue.svg)
+
+[![PyPi version](https://img.shields.io/pypi/v/g.svg)](https://pypi.org/project/grand-framework)
+[![Coding style](https://img.shields.io/badge/PEP8-87%25-green.svg)](https://github.com/grand-mother/framework/blob/master/docs/stats.json)
 [![Build status](https://travis-ci.com/grand-mother/framework.svg?branch=master)](https://travis-ci.com/grand-mother/framework)
 
 # Framework

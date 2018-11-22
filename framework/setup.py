@@ -69,6 +69,16 @@ def make_version_module(package, version):
         f.write(content)
 
 
+def get_alts(package_name):
+    """Get alternative names for the package"""
+    git_name = package_name.replace("_", "-")
+    if git_name.startswith("grand-"):
+        dist_name = git_name
+    else:
+        dist_name = "grand-" + git_name
+    return git_name, dist_name
+
+
 def parse_readme(path=None):
     """Parse some meta data from the README.md"""
 
@@ -88,11 +98,7 @@ def parse_readme(path=None):
     if package_name is None:
         raise RuntimeError("Invalid README.md")
 
-    git_name = package_name.replace("_", "-")
-    if git_name.startswith("grand-"):
-        dist_name = git_name
-    else:
-        dist_name = "grand-" + git_name
+    git_name, dist_name = get_alts(package_name)
     meta["name"] = dist_name
 
     return package_name, git_name, meta
