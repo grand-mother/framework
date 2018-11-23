@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 from framework import setup_package
 
 
@@ -25,7 +26,8 @@ if __name__ == "__main__":
         # Vanilla setuptools.setup arguments
         install_requires = (
             "setuptools>=40.0.0",
-            "wheel>=0.32.0"
+            "wheel>=0.32.0",
+            "autopep8>=1.4.0"
         ),
         entry_points = {
             "console_scripts" : (
@@ -34,7 +36,9 @@ if __name__ == "__main__":
                 "grand-git-prepare-commit-msg=framework.hooks:"
                     "prepare_commit_msg",)
         },
-        data_files = [(".", [
-            "LICENSE", "COPYING.LESSER", "MANIFEST.in", ".gitignore",
-            ".travis.yml"])]
+        package_data = {
+            "framework": [os.path.join("data", file_) for file_ in (
+                "LICENSE", "COPYING.LESSER", "MANIFEST.in", ".gitignore",
+                ".travis.yml")]
+        },
     )

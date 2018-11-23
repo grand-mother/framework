@@ -30,7 +30,7 @@ __all__ = [ "main" ]
 def get_data_dir():
     """Get the absolute path to the package data files"""
     path = os.path.dirname(__file__)
-    path = os.path.join(path, "..")
+    path = os.path.join(path, "data")
     return os.path.abspath(path)
 
 

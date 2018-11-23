@@ -5,7 +5,7 @@
 -->
 
 [![PyPi version](https://img.shields.io/pypi/v/g.svg)](https://pypi.org/project/grand-framework)
-[![Coding style](https://img.shields.io/badge/PEP8-87%25-green.svg)](https://github.com/grand-mother/framework/blob/master/docs/stats.json)
+[![Coding style](https://img.shields.io/badge/PEP8-87%25-red.svg)](https://github.com/grand-mother/framework/blob/master/docs/stats.json)
 [![Build status](https://travis-ci.com/grand-mother/framework.svg?branch=master)](https://travis-ci.com/grand-mother/framework)
 
 # Framework
