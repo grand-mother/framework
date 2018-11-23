@@ -193,9 +193,6 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
 
     # Extra framework meta data
     meta.update(dict(
-        # The author(s) of the package
-        author = "The GRAND collaboration",
-
         # The maintainer(s) of the package, i.e. those who publish it
         maintainer = "GRAND Developers",
         maintainer_email = "grand-dev-l@in2p3.fr",

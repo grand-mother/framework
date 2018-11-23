@@ -18,7 +18,7 @@ EXTRA_CLASSIFIERS = (
 )
 
 
-if __name__ == "__main__":
+def main():
     setup_package(
         # Framework arguments
         __file__, (MAJOR, MINOR, MICRO), EXTRA_CLASSIFIERS,
@@ -41,4 +41,9 @@ if __name__ == "__main__":
                 "LICENSE", "COPYING.LESSER", "MANIFEST.in", ".gitignore",
                 ".travis.yml")]
         },
+        test_suite = "tests",
     )
+
+
+if __name__ == "__main__":
+    main()

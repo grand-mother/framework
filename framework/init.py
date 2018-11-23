@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 import argparse
 import os
 import shutil
+import subprocess
 import sys
 
 from distutils.spawn import find_executable
@@ -192,14 +193,27 @@ def add_git_hook(git_dir, hook_name):
     os.symlink(exe_path, path)
 
 
-def main():
+def main(argv=None):
     """Parse CLI arguments and initialise a local package"""
 
     parser = argparse.ArgumentParser(description='Initialise a GRAND package.')
     parser.add_argument(
-        "path", metavar = "path", type = str, nargs = "?", default = ".",
+        "path", type = str, nargs = "?", default = ".",
         help = "the path to the package")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--default", dest = "use_default", action = "store_const",
+        const = True, default = False, help = "use default options")
+    parser.add_argument(
+        "--quiet", dest = "quiet", action = "store_const",
+        const = True, default = False, help = "suppress output")
+    args = parser.parse_args(argv)
+
+    # Set system calls
+    def quiet_system(cmd):
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        p.communicate()
+
+    system = quiet_system if args.quiet else os.system
 
     # Path to the package data
     data_dir = get_data_dir()
@@ -226,21 +240,31 @@ def main():
         if len(packages) == 1:
             default_name = packages[0]
         else:
-            default_name = os.path.basename(package_dir)
+            default_name = os.path.basename(package_dir).replace("-", "_")
 
         # Prompt the package meta data
-        prompt = "Please enter the package name [{:}]: ".format(default_name)
-        package_name = raw_input(prompt).strip()
-        if not package_name:
+        if args.use_default:
             package_name = default_name
+        else:
+            prompt = "Please enter the package name [{:}]: ".format(
+                default_name)
+            package_name = raw_input(prompt).strip()
+            if not package_name:
+                package_name = default_name
         if not package_name:
-            print("Aborting ...")
+            if not args.quiet:
+                print("Aborting ...")
             sys.exit(0)
 
-        prompt = "Please enter a brief description: "
-        description = raw_input(prompt).strip()
-        if not description:
-            description = "Add a brief description"
+        default_description = "Add a brief description"
+        if args.use_default:
+            description = default_description
+        else:
+            prompt = "Please enter a brief description: "
+            description = raw_input(prompt).strip()
+            if not description:
+                description = default_description 
+
         git_name = package_name.replace("_", "-")
         if git_name.startswith("grand-"):
             dist_name = git_name
@@ -270,7 +294,7 @@ def main():
     # Initialise git
     git_dir = os.path.join(package_dir, ".git")
     if not os.path.exists(git_dir):
-        os.system("git init " + package_dir)
+        system("git init " + package_dir)
         commit = True
     else:
         commit = False
@@ -289,7 +313,7 @@ def main():
         for file_ in files:
             command.append("git add " + file_)
         command.append("git commit -m 'Initial commit'")
-        os.system(" && ".join(command))
+        system(" && ".join(command))
 
 
 if __name__ == "__main__":

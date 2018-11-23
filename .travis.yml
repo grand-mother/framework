@@ -20,7 +20,11 @@ env:
     - PATH=/home/travis/.local/bin/:$PATH
 
 install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then pip install codecov; fi
   - python setup.py install --user --prefix=
 
 script:
-  - python setup.py distclean
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then coverage run tests; else python setup.py test; fi
+
+after_success:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then codecov; fi

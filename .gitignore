@@ -10,5 +10,5 @@ dist
 build
 *.egg-info
 
-# Ignore git hooks temporaries
-.commit
+# Ignore temporary coverage reports
+.coverage

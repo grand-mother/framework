@@ -92,9 +92,13 @@ def count_lines_in(file_):
 def count_lines(path):
     """Count the number of Python code lines, recursively"""
 
+    def format(counts):
+        return {"blank": counts[0], "comment": counts[1],
+                "docstring": counts[2], "code": counts[3]}
+
     _, ext = os.path.splitext(path)
     if ext == ".py":
-        return count_lines_in(path)
+        return format(count_lines_in(path))
 
     counts = 4 * [0,]
     for root, dirs, files in os.walk(path):
@@ -104,8 +108,7 @@ def count_lines(path):
                 c = count_lines_in(os.path.join(root, file_))
                 for i, ci in enumerate(c):
                     counts[i] += ci
-    return {"blank": counts[0], "comment": counts[1], "docstring": counts[2],
-            "code": counts[3]}
+    return format(counts)
 
 
 def check_style(path):
@@ -181,6 +184,13 @@ def update_readme(package_dir, package_name, stats, readme):
             "/blob/master/docs/stats.json",
         "badge/PEP8-{:}%25-{:}.svg", shield=(score, color))
 
+    # Coverage badge
+    base_url = "https://codecov.io/gh/grand-mother/"
+    add_badge(
+        "Code coverage",
+        base_url + git_name,
+        "{:}{:}/branch/master/graph/badge.svg", image=(base_url, git_name))
+
     # Travis badge
     base_url = "https://travis-ci.com/grand-mother/"  
     add_badge(
@@ -237,15 +247,17 @@ def pre_commit():
     sys.exit(0)
 
 
-def prepare_commit_msg():
+def prepare_commit_msg(file_=None):
     """Git hook for preparing the commit message"""
-    with open(sys.argv[1], "r") as f:
+    if file_ is None:
+        file_ = sys.argv[1]
+    with open(file_, "r") as f:
         initial_msg = f.read()
 
     msg = add_banner(initial_msg)
 
     if msg is not initial_msg:
-        with open(sys.argv[1], "w") as f:
+        with open(file_, "w") as f:
             f.write(msg)
     sys.exit(0)
 
