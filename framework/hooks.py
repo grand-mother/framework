@@ -153,9 +153,13 @@ def update_readme(package_dir, package_name, stats, readme):
         preamble.append(badge)
 
     def colormap(score):
-        index = 6 * (int(score) / 100)
-        return ["red", "orange", "yellow", "yellowgreen", "green",
-                "brightgreen"][index]
+        colors = ("red", "orange", "yellow", "yellowgreen", "green",
+                  "brightgreen")
+        n = len(colors)
+        index = int(n * score * 1E-02)
+        index = min(n - 1, index)
+        index = max(0, index)
+        return colors[index]
 
     # PyPi badge
     git_name, dist_name = get_alts(package_name)
