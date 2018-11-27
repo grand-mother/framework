@@ -1,36 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for the framework.init module
+Unit tests for the framework.setup module
 """
 
 import os
-import sys
 import unittest
-from cStringIO import StringIO
 
 import setup
 
-
-class CallContext(object):
-    """context for encapsulating an executable call"""
-    def __init__(self, *args):
-        self._args = args
-        self.stdout = StringIO()
-        self.stderr = StringIO()
-
-    def __enter__(self):
-        self._backup = (sys.argv, sys.stdout, sys.stderr)
-        sys.argv = self._args
-        sys.stdout = self.stdout
-        sys.stderr = self.stderr
-        return self
-
-    def __exit__(self, typ, value, traceback):
-        sys.argv, sys.stdout, sys.stderr = self._backup
+from framework import RunContext
 
 
 class SetupTest(unittest.TestCase):
-    """Unit tests for the init module"""
+    """Unit tests for the setup module"""
 
     @classmethod
     def setUpClass(cls):
@@ -44,24 +26,24 @@ class SetupTest(unittest.TestCase):
         os.chdir(cls._pwd)
 
     def run_setup(*args):
-        with CallContext("setup.py", *args) as context:
+        with RunContext("setup.py", *args) as context:
             setup.main()
-        self.assertEqual(context.stderr.getvalue(), "")
+        self.assertEqual(context.err, "")
 
     def test_build(self):
-        with CallContext("setup.py", "build") as context:
+        with RunContext("setup.py", "build") as context:
             setup.main()
-        self.assertEqual(context.stderr.getvalue(), "")
+        self.assertEqual(context.err, "")
 
     def test_dist(self):
-        with CallContext("setup.py", "sdist", "bdist_wheel") as context:
+        with RunContext("setup.py", "sdist", "bdist_wheel") as context:
             setup.main()
-        self.assertEqual(context.stderr.getvalue(), "")
+        self.assertEqual(context.err, "")
  
     def test_distclean(self):
-        with CallContext("setup.py", "distclean") as context:
+        with RunContext("setup.py", "distclean") as context:
             setup.main()
-        self.assertEqual(context.stderr.getvalue(), "")
+        self.assertEqual(context.err, "")
 
 
 if __name__ == "__main__":

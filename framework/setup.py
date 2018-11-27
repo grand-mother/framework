@@ -201,7 +201,7 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
         # The package description
         version = version,
         url = "https://github.com/grand-mother/" + git_name,
-        packages = find_packages(_PACKAGE_DIR),
+        packages = find_packages(_PACKAGE_DIR, exclude=("tests",)),
         long_description = open(os.path.join(_PACKAGE_DIR, "README.md")).read(),
         long_description_content_type = "text/markdown",
         include_package_data = True,

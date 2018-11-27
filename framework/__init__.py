@@ -28,5 +28,6 @@ except ImportError:
 
 # Public modules
 from .setup import *
+from .test import *
 
-__all__ = ["__version__", "__githash__", "setup_package"]
+__all__ = ["__version__", "__githash__", "setup_package", "RunContext"]

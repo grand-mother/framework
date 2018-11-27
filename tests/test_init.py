@@ -8,7 +8,7 @@ import shutil
 import sys
 import unittest
 
-from framework import init
+from framework import init, RunContext
 
 
 class InitTest(unittest.TestCase):
@@ -16,19 +16,26 @@ class InitTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.tmpdir = "tmp"
+        cls._pwd = os.getcwd()
+        path = os.path.dirname(__file__)
+        path = os.path.join(path, "..")
+        os.chdir(path)
+
+        cls.tmpdir = ".git/.tmp"
         os.mkdir(cls.tmpdir)
 
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.tmpdir)
+        os.chdir(cls._pwd)
 
     def create(self, package_name):
         path = os.path.join(self.tmpdir, package_name)
-        try:
-            init.main((path, "--default", "--quiet"))
-        except Exception as e:
-            self.fail(e)
+        args = ("grand-pkg-init", "--default", "--quiet", path) 
+        with RunContext(*args) as context:
+            init.main()
+        self.assertEqual(context.err, "")
+        self.assertEqual(context.code, 0)
 
     def test_create_simple(self):
         self.create("toto")

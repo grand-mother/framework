@@ -7,11 +7,11 @@ import os
 import shutil
 import unittest
 
-from framework import hooks
+from framework import hooks, RunContext
 
 
 class HooksTest(unittest.TestCase):
-    """Unit tests for the init module"""
+    """Unit tests for the hook module"""
 
     @classmethod
     def setUpClass(cls):
@@ -20,8 +20,8 @@ class HooksTest(unittest.TestCase):
         path = os.path.join(path, "..")
         os.chdir(path)
 
-        cls._tmpdir = "tmp"
-        os.mkdir(cls._tmpdir)
+        cls._tmpdir = ".git/.tmp"
+        os.makedirs(cls._tmpdir)
 
     @classmethod
     def tearDownClass(cls):
@@ -29,12 +29,18 @@ class HooksTest(unittest.TestCase):
         os.chdir(cls._pwd)
 
     def test_pre_commit(self):
-        with self.assertRaises(SystemExit) as context:
+        with RunContext("pre-commit") as context:
             hooks.pre_commit()
-        self.assertEqual(context.exception.code, 0)
+
+        # Clean any modified file
+        for file_ in (".stats.json", "README.md"):
+            hooks.git("reset", file_)
+            hooks.git("checkout", file_)
+
+        self.assertEqual(context.code, 0)
 
     def test_prepare_commit_msg(self):
-        file_ = "tmp/COMMIT_MSG"
+        file_ = os.path.join(self._tmpdir, "COMMIT_MSG")
         with open(file_, "w") as f:
             msg = os.linesep.join((
                 "Initial commit",
@@ -43,9 +49,9 @@ class HooksTest(unittest.TestCase):
                 ""))
             f.write(msg)
 
-        with self.assertRaises(SystemExit) as context:
-            hooks.prepare_commit_msg(file_)
-        self.assertEqual(context.exception.code, 0)
+        with RunContext("prepare-commit-msg", file_) as context:
+            hooks.prepare_commit_msg()
+        self.assertEqual(context.code, 0)
 
 
 if __name__ == "__main__":

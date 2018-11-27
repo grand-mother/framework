@@ -183,7 +183,7 @@ def add_git_hook(git_dir, hook_name):
                 "  Hook has not been installed",
                 "")
         sys.stderr.write(os.linesep.join(msg))
-        return
+        return False
 
     path = os.path.join(git_dir, "hooks", hook_name)
     try:
@@ -191,9 +191,10 @@ def add_git_hook(git_dir, hook_name):
     except OSError:
         pass
     os.symlink(exe_path, path)
+    return True
 
 
-def main(argv=None):
+def main():
     """Parse CLI arguments and initialise a local package"""
 
     parser = argparse.ArgumentParser(description='Initialise a GRAND package.')
@@ -206,7 +207,7 @@ def main(argv=None):
     parser.add_argument(
         "--quiet", dest = "quiet", action = "store_const",
         const = True, default = False, help = "suppress output")
-    args = parser.parse_args(argv)
+    args = parser.parse_args()
 
     # Set system calls
     def quiet_system(cmd):
@@ -300,8 +301,9 @@ def main(argv=None):
         commit = False
 
     # Add hooks for git
-    add_git_hook(git_dir, "pre-commit")
-    add_git_hook(git_dir, "prepare-commit-msg")
+    code = 0
+    if not add_git_hook(git_dir, "pre-commit"): code = 1
+    if not add_git_hook(git_dir, "prepare-commit-msg"): code = 1
 
     # Do the initial commit
     if commit:
@@ -314,6 +316,9 @@ def main(argv=None):
             command.append("git add " + file_)
         command.append("git commit -m 'Initial commit'")
         system(" && ".join(command))
+
+    # Exit to the OS
+    sys.exit(code)
 
 
 if __name__ == "__main__":
