@@ -188,7 +188,7 @@ def update_readme(package_dir, package_name, stats, readme):
         "Coding style",
         "https://github.com/grand-mother/" + git_name +
             "/blob/master/docs/.stats.json",
-        "badge/PEP8-{:}%25-{:}.svg", shield=(score, color))
+        "badge/pep8-{:}%25-{:}.svg", shield=(score, color))
 
     # Coverage badge
     base_url = "https://codecov.io/gh/grand-mother/"
