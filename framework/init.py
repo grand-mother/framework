@@ -64,6 +64,7 @@ exclude_lines =
     if self.debug:
     pragma: no cover
     raise NotImplementedError
+    except ImportError:
     if __name__ == .__main__.:
 ignore_errors = True
 omit =
@@ -153,7 +154,7 @@ except ImportError:
     __version__ = None
     __githash__ = None
 
-# Import here any public module(s)
+# Initialise the package below
 '''.format(description)
 
     with open(path, "w") as f:
