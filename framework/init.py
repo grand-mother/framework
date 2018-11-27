@@ -51,6 +51,30 @@ def mkdir(path):
         os.makedirs(path)
 
 
+def write_coverage_config(path, package_name):
+    """Write a default config file for `coverage`"""
+
+    content = """\
+[run]
+branch = True
+include = */{:}/*.py
+
+[report]
+exclude_lines =
+    if self.debug:
+    pragma: no cover
+    raise NotImplementedError
+    if __name__ == .__main__.:
+ignore_errors = True
+omit =
+    tests/*
+    setup.py
+""".format(package_name)
+
+    with open(path, "w") as f:
+        f.write(content)
+
+
 def write_readme(path, git_name, dist_name, title, description):
     """Write a default README file"""
 
@@ -355,6 +379,11 @@ def main():
         package_name, _, meta = parse_readme(path)
         description = meta["description"]
 
+    # Write the configuration file for `coverage`
+    path = os.path.join(package_dir, ".coveragerc")
+    if not os.path.exists(path):
+        write_coverage_config(path, package_name)
+
     # Initialise the source
     src_dir = os.path.join(package_dir, package_name)
     mkdir(src_dir)
@@ -401,8 +430,8 @@ def main():
     if commit:
         command = ["cd " + package_dir]
         files = (
-            ".gitignore", ".travis.yml", "COPYING.LESSER", "LICENSE",
-            "MANIFEST.in", "docs/README.md", "setup.py", "tests",
+            ".coveragerc", ".gitignore", ".travis.yml", "COPYING.LESSER",
+            "LICENSE", "MANIFEST.in", "docs/README.md", "setup.py", "tests",
             package_name
         )
         for file_ in files:

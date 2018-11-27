@@ -22,6 +22,7 @@ before_install:
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then pip install codecov; fi
+  - pip install git+https://github.com/grand-mother/framework.git@master
   - python setup.py install --user --prefix=
 
 script:

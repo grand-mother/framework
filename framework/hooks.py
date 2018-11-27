@@ -187,7 +187,7 @@ def update_readme(package_dir, package_name, stats, readme):
     add_badge(
         "Coding style",
         "https://github.com/grand-mother/" + git_name +
-            "/blob/master/docs/stats.json",
+            "/blob/master/docs/.stats.json",
         "badge/PEP8-{:}%25-{:}.svg", shield=(score, color))
 
     # Coverage badge
