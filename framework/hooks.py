@@ -173,14 +173,8 @@ def update_readme(package_dir, package_name, stats, readme):
         index = max(0, index)
         return colors[index]
 
-    # PyPi badge
-    git_name, dist_name = get_alts(package_name)
-    add_badge(
-        "PyPi version",
-        "https://pypi.org/project/" + dist_name,
-        "pypi/v/{:}.svg", shield=dist_name)
-
     # PEP8 badge
+    git_name, dist_name = get_alts(package_name)
     lines = stats["lines"]["code"]
     score = int(100. * (lines - stats["pep8"]["count"]) / float(lines))
     color = colormap(score)
@@ -203,6 +197,12 @@ def update_readme(package_dir, package_name, stats, readme):
         "Build status",
         base_url + git_name,
         "{:}{:}.svg?branch=master", image=(base_url, git_name))
+
+    # PyPi badge
+    add_badge(
+        "PyPi version",
+        "https://pypi.org/project/" + dist_name,
+        "pypi/v/{:}.svg", shield=dist_name)
 
     path = os.path.join(package_dir, "README.md")
     with open(path, "w") as f:
