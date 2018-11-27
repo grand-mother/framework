@@ -236,7 +236,7 @@ def main(argv=None):
     path = os.path.join(docs_dir, "README.md")
     if not os.path.exists(path):
         # Get the package name from any existing source
-        packages = find_packages(package_dir)
+        packages = find_packages(package_dir, exclude=("tests",))
         if len(packages) == 1:
             default_name = packages[0]
         else:

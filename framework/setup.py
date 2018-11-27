@@ -137,7 +137,7 @@ class DistClean(Command):
             remove_directory(path)
 
         # Remove bytecode and version module
-        packages = find_packages(_PACKAGE_DIR)
+        packages = find_packages(_PACKAGE_DIR, exclude=("tests",))
         if len(packages) != 1:
             return
 
