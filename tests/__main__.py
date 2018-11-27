@@ -9,7 +9,7 @@ import unittest
 def suite():
     test_loader = unittest.TestLoader()
     path = os.path.dirname(__file__)
-    test_suite = test_loader.discover(path, pattern='test_*.py')
+    test_suite = test_loader.discover(path, pattern="test_*.py")
     return test_suite
 
 

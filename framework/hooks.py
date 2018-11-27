@@ -23,7 +23,10 @@ import os
 import subprocess
 import sys
 
-from pycodestyle import StyleGuide
+try:
+    from pycodestyle import StyleGuide
+except ImportError:
+    StyleGuide = None
 
 from setup import get_alts
 try:
@@ -114,10 +117,13 @@ def count_lines(path):
 def check_style(path):
     """Check the conformity to PEP8"""
 
-    style_guide = StyleGuide(quiet=True)
-    report = style_guide.check_files(paths=(path,))
-    stats = [line.split(None, 2) for line in report.get_statistics()]
-    return { "count": report.get_count(), "categories": stats }
+    if StyleGuide is not None:
+        style_guide = StyleGuide(quiet=True)
+        report = style_guide.check_files(paths=(path,))
+        stats = [line.split(None, 2) for line in report.get_statistics()]
+        return { "count": report.get_count(), "categories": stats }
+    else:
+        return { "count": None, "categories": None }
 
 
 def analyse_package(package_dir, package_name):

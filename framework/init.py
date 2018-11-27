@@ -137,7 +137,7 @@ except ImportError:
 
 
 def write_setup(path):
-    """Write a default setup.py file"""
+    """Write a default setup.py file for the base package"""
 
     content = """\
 # -*- coding: utf-8 -*-
@@ -168,6 +168,82 @@ if __name__ == "__main__":
         # e.g. `entry_points` for executables or `data_files`
     )
 """
+
+    with open(path, "w") as f:
+        f.write(content)
+
+
+def write_tests_init(path, package_name):
+    """Write a default __init__.py file for the tests package"""
+
+    content = '''\
+# -*- coding: utf-8 -*-
+"""
+Unit tests for the {:} package
+"""
+'''.format(package_name)
+
+    with open(path, "w") as f:
+        f.write(content)
+
+
+def write_tests_main(path, package_name):
+    """Write a default __main__.py file for the tests package"""
+
+    content = '''\
+# -*- coding: utf-8 -*-
+"""
+Run all unit tests for the {:} package
+"""
+import os
+import unittest
+
+
+def suite():
+    test_loader = unittest.TestLoader()
+    path = os.path.dirname(__file__)
+    test_suite = test_loader.discover(path, pattern="test_*.py")
+    return test_suite
+
+
+if __name__ == "__main__":
+    unittest.TextTestRunner(verbosity=2).run(suite())
+'''.format(package_name)
+
+    with open(path, "w") as f:
+        f.write(content)
+
+
+def write_tests_version(path, package_name):
+    """Write a default test_version.py file for the tests package"""
+
+    content = '''\
+# -*- coding: utf-8 -*-
+"""
+Unit tests for the {0:}.version module
+"""
+
+import unittest
+import sys
+
+import {0:}
+from framework import git
+
+
+class VersionTest(unittest.TestCase):
+    """Unit tests for the version module"""
+
+    def test_hash(self):
+        githash, _ = git("rev-parse", "HEAD")
+        self.assertEqual(githash.strip(), {0:}.version.__githash__)
+
+    def test_version(self):
+        self.assertIsNotNone({0:}.version.__version__)
+
+
+if __name__ == "__main__":
+    unittest.main()
+'''.format(package_name)
 
     with open(path, "w") as f:
         f.write(content)
@@ -287,6 +363,22 @@ def main():
     if not os.path.exists(path):
         write_source(path, description)
 
+    # Initialise the tests
+    tests_dir = os.path.join(package_dir, "tests")
+    mkdir(tests_dir)
+
+    path = os.path.join(tests_dir, "__init__.py")
+    if not os.path.exists(path):
+        write_tests_init(path, package_name)
+
+    path = os.path.join(tests_dir, "__main__.py")
+    if not os.path.exists(path):
+        write_tests_main(path, package_name)
+
+    path = os.path.join(tests_dir, "test_version.py")
+    if not os.path.exists(path):
+        write_tests_version(path, package_name)
+
     # Initialise the setup script
     path = os.path.join(package_dir, "setup.py")
     if not os.path.exists(path):
@@ -310,7 +402,8 @@ def main():
         command = ["cd " + package_dir]
         files = (
             ".gitignore", ".travis.yml", "COPYING.LESSER", "LICENSE",
-            "MANIFEST.in", "docs/README.md", "setup.py", package_name
+            "MANIFEST.in", "docs/README.md", "setup.py", "tests",
+            package_name
         )
         for file_ in files:
             command.append("git add " + file_)

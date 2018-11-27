@@ -29,5 +29,6 @@ except ImportError:
 # Public modules
 from .setup import *
 from .test import *
+from .hooks import git
 
-__all__ = ["__version__", "__githash__", "setup_package", "RunContext"]
+__all__ = ["__version__", "__githash__", "git", "RunContext", "setup_package"]

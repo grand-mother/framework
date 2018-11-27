@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Base unit tests for the framework package
+Unit tests for the framework.version module
 """
 
 import unittest
 import sys
 
 import framework
-from framework.hooks import git
+from framework import git
 
 
 class VersionTest(unittest.TestCase):
