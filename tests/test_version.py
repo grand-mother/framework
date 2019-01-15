@@ -14,7 +14,7 @@ class VersionTest(unittest.TestCase):
     """Unit tests for the version module"""
 
     def test_hash(self):
-        githash, _ = git("rev-parse", "HEAD")
+        githash = git("rev-parse", "HEAD")
         self.assertEqual(githash.strip(), framework.version.__githash__)
 
     def test_version(self):

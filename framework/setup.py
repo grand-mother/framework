@@ -27,6 +27,13 @@ import sys
 from distutils.core import Command
 from setuptools import setup, find_packages
 
+try:
+    system = subprocess.getoutput
+except:
+    def system(command):
+        p = subprocess.Popen(command, shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return p.communicate()[0]
 
 __all__ = [ "setup_package" ]
 
@@ -47,11 +54,6 @@ _PACKAGE_DIR = "."
 
 def make_version_module(package, version):
     """Build the version.py module for the distribution"""
-
-    def system(cmd):
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-        out, _ = p.communicate()
-        return out
 
     status = system("git status --porcelain")
     if status and not ("pip-delete-this-directory.txt" in str(status)):
@@ -193,6 +195,8 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
         all_classifiers += extra_classifiers
 
     # Extra framework meta data
+    with open(os.path.join(_PACKAGE_DIR, "README.md")) as f:
+        long_description = f.read()
     meta.update(dict(
         # The maintainer(s) of the package, i.e. those who publish it
         maintainer = "GRAND Developers",
@@ -202,7 +206,7 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
         version = version,
         url = "https://github.com/grand-mother/" + git_name,
         packages = find_packages(_PACKAGE_DIR, exclude=("tests",)),
-        long_description = open(os.path.join(_PACKAGE_DIR, "README.md")).read(),
+        long_description = long_description,
         long_description_content_type = "text/markdown",
         include_package_data = True,
         classifiers = all_classifiers,

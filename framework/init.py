@@ -26,7 +26,12 @@ import sys
 
 from distutils.spawn import find_executable
 from setuptools import setup, find_packages
-from setup import parse_readme
+from .setup import parse_readme
+
+try:
+    input = input
+except:
+    pass
 
 __all__ = [ "main" ]
 
@@ -259,7 +264,7 @@ class VersionTest(unittest.TestCase):
     """Unit tests for the version module"""
 
     def test_hash(self):
-        githash, _ = git("rev-parse", "HEAD")
+        githash = git("rev-parse", "HEAD")
         self.assertEqual(githash.strip(), {0:}.version.__githash__)
 
     def test_version(self):
@@ -350,7 +355,7 @@ def main():
         else:
             prompt = "Please enter the package name [{:}]: ".format(
                 default_name)
-            package_name = raw_input(prompt).strip()
+            package_name = input(prompt).strip()
             if not package_name:
                 package_name = default_name
         if not package_name:
@@ -363,7 +368,7 @@ def main():
             description = default_description
         else:
             prompt = "Please enter a brief description: "
-            description = raw_input(prompt).strip()
+            description = input(prompt).strip()
             if not description:
                 description = default_description 
 

@@ -28,7 +28,7 @@ try:
 except ImportError:
     StyleGuide = None
 
-from setup import get_alts
+from .setup import get_alts, system
 try:
     from version import __version__
 except ImportError:
@@ -40,14 +40,12 @@ __all__ = ["pre_commit", "prepare_commit_msg"]
 def git(*args):
     """System git call"""
     command = "git " + " ".join(args)
-    p = subprocess.Popen(
-        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    return p.communicate()
+    return system(command)
 
 
 def get_top_directory():
     """Get the package top directory from git"""
-    top, _ = git("rev-parse", "--show-toplevel")
+    top = git("rev-parse", "--show-toplevel")
     return top.strip()
 
 
@@ -135,7 +133,7 @@ def analyse_package(package_dir, package_name):
     stats["pep8"] = check_style(path)
 
     path = os.path.join(package_dir, ".stats.json")
-    with open(path, "wb") as f:
+    with open(path, "w") as f:
         json.dump(stats, f)
 
     git("add", path)

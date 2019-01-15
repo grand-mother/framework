@@ -20,7 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import sys
 
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except:
+    from io import StringIO
 
 __all__ = [ "RunContext" ]
 
