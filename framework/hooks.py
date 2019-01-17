@@ -18,6 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 """
 
+import importlib
+import inspect
 import json
 import os
 import subprocess
@@ -28,7 +30,10 @@ try:
 except ImportError:
     StyleGuide = None
 
-from .setup import get_alts, system
+try:
+    from .setup import get_alts, system
+except:
+    from framework.setup import get_alts, system
 try:
     from version import __version__
 except ImportError:
@@ -123,6 +128,55 @@ def check_style(path):
     else:
         return { "count": None, "categories": None }
 
+def gather_doc(package_dir, package_name):
+    """Gather public objects and their associated docstrings"""
+
+    def gather(obj):
+        """Gather info recursively"""
+        modules, classes, functions = {}, {}, {}
+        for name, data in inspect.getmembers(obj):
+            if name.startswith("_"):
+                continue
+
+            # Check the object type
+            if inspect.isclass(data):
+                container, attr = classes, "__module__"
+            elif inspect.isfunction(data):
+                container, attr = functions, "__module__"
+            elif inspect.ismodule(data) and (name != "version"):
+                container, attr = modules, "__package__"
+            else:
+                continue
+
+            source = getattr(data, attr)
+            if ((source != package_name) and not
+                (source.startswith(package_name + "."))):
+                continue
+
+            # Gather the doc for this object
+            file_ = inspect.getsourcefile(data).split(package_name + "/")[-1]
+            _, lineno = inspect.getsourcelines(data)
+            doc = inspect.getdoc(data)
+            if doc is not None:
+                doc = doc.split(
+                    "\n\nCopyright (C) 2018 The GRAND collaboration",1)[0]
+                doc = inspect.cleandoc(doc)
+
+            if container is modules:
+                info = (file_, lineno, doc, gather(data)) 
+            else:
+                info = (file_, lineno, doc)
+
+            container[name] = info 
+
+        return {"classes": classes, "functions": functions, "modules": modules}
+
+    # Import the package
+    sys.path.append(package_dir)
+    package = importlib.import_module(package_name)
+
+    # Gather the doc and return
+    return gather(package)
 
 def analyse_package(package_dir, package_name):
     """Analyse the content of a package and dump statistics"""
@@ -131,6 +185,7 @@ def analyse_package(package_dir, package_name):
     stats = {}
     stats["lines"] = count_lines(path)
     stats["pep8"] = check_style(path)
+    stats["doc"] = gather_doc(package_dir, package_name)
 
     path = os.path.join(package_dir, ".stats.json")
     with open(path, "w") as f:

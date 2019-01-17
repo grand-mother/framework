@@ -162,6 +162,8 @@ class DistClean(Command):
 
 
 def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
+    """Wrapper of the distutils.setup function, for GRAND packages"""
+
     # Check the setup command
     try:
         command = sys.argv[1]
