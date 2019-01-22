@@ -186,10 +186,6 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
         # Make the version module. Note that this will check the git
         # status as Well
         make_version_module(package_name, version)
- 
-        # Sanity check: import the package
-        sys.path.append(_PACKAGE_DIR)
-        package = __import__(package_name)
 
     # Merge the classifiers
     all_classifiers = [s for s in DEFAULT_CLASSIFIERS.splitlines() if s]
