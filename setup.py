@@ -40,8 +40,7 @@ def main():
             "framework": [os.path.join("data", file_) for file_ in (
                 "LICENSE", "COPYING.LESSER", "MANIFEST.in", ".gitignore",
                 ".travis.yml")]
-        },
-        test_suite = "tests",
+        }
     )
 
 

@@ -263,15 +263,21 @@ import {0:}
 from framework import git
 
 
-class VersionTest(unittest.TestCase):
-    """Unit tests for the version module"""
+try:
+    import {0:}.version
+except:
+    # Skip version tests for non release builds
+    pass
+else:
+    class VersionTest(unittest.TestCase):
+        """Unit tests for the version module"""
 
-    def test_hash(self):
-        githash = git("rev-parse", "HEAD")
-        self.assertEqual(githash.strip(), {0:}.version.__githash__)
+        def test_hash(self):
+            githash = git("rev-parse", "HEAD")
+            self.assertEqual(githash.strip(), {0:}.version.__githash__)
 
-    def test_version(self):
-        self.assertIsNotNone({0:}.version.__version__)
+        def test_version(self):
+            self.assertIsNotNone({0:}.version.__version__)
 
 
 if __name__ == "__main__":
@@ -413,8 +419,7 @@ def main():
     write_tests_main(path, package_name)
 
     path = os.path.join(tests_dir, "test_version.py")
-    if not os.path.exists(path):
-        write_tests_version(path, package_name)
+    write_tests_version(path, package_name)
 
     # Initialise the setup script
     path = os.path.join(package_dir, "setup.py")
