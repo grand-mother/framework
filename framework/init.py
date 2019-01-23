@@ -227,6 +227,7 @@ Run all unit tests for the {:} package
 """
 import os
 import unittest
+import sys
 
 
 def suite():
@@ -237,7 +238,9 @@ def suite():
 
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(suite())
+    runner = unittest.TextTestRunner(verbosity=2)
+    r = not runner.run(suite()).wasSuccessful()
+    sys.exit(r)
 '''.format(package_name)
 
     with open(path, "w") as f:
@@ -398,7 +401,7 @@ def main():
     if not os.path.exists(path):
         write_source(path, description)
 
-    # Initialise the tests
+    # Initialise (or update) the tests
     tests_dir = os.path.join(package_dir, "tests")
     mkdir(tests_dir)
 
@@ -407,8 +410,7 @@ def main():
         write_tests_init(path, package_name)
 
     path = os.path.join(tests_dir, "__main__.py")
-    if not os.path.exists(path):
-        write_tests_main(path, package_name)
+    write_tests_main(path, package_name)
 
     path = os.path.join(tests_dir, "test_version.py")
     if not os.path.exists(path):
