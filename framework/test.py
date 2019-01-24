@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Encapsulation of setuptools for GRAND
+Utilities for unit tests
 
 Copyright (C) 2018 The GRAND collaboration
 

@@ -18,8 +18,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 """
 
+import ast
+import glob
 import importlib
-import inspect
 import json
 import os
 import subprocess
@@ -128,55 +129,187 @@ def check_style(path):
     else:
         return { "count": None, "categories": None }
 
+
 def gather_doc(package_dir, package_name):
     """Gather public objects and their associated docstrings"""
 
-    def gather(obj):
-        """Gather info recursively"""
-        modules, classes, functions = {}, {}, {}
-        for name, data in inspect.getmembers(obj):
+    def gather_module(path, data, check_imports=False):
+        """Gather module top level nodes"""
+
+        with open(os.path.join(package_dir, path)) as f:
+            module = ast.parse(f.read())
+
+        doc = ast.get_docstring(module, clean=True)
+        if doc is not None:
+            doc = doc.split(
+                "\n\nCopyright (C) 2018 The GRAND collaboration", 1)[0]
+        data["doc"] = doc
+
+        classes, definitions, functions, imports = {}, {}, {}, {}
+        data["classes"] = classes
+        data["definitions"] = definitions
+        data["functions"] = functions
+        data["imports"] = imports
+        data["path"] = path
+
+        for node in module.body:
+            # Check the object type
+            if isinstance(node, ast.ClassDef):
+                container, name = classes, node.name
+            elif isinstance(node, ast.FunctionDef):
+                container, name = functions, node.name
+            elif isinstance(node, ast.Assign):
+                name = ", ".join([t.id for t in node.targets])
+                if name == "__all__":
+                    data[name] = [a.s for a in node.value.elts]
+                    continue
+                container = definitions
+            elif check_imports and isinstance(node, ast.ImportFrom):
+                # Skip global imports
+                if node.level == 0:
+                    continue
+
+                # Create or get the container
+                try:
+                    ii = imports[node.level]
+                except KeyError:
+                    i = []
+                    imports[node.level] = {node.module: i}
+                else:
+                    try:
+                        i = ii[node.module]
+                    except KeyError:
+                        i = []
+                        ii[node.module] = i
+
+                # Append the symbol and its alias to the liss of imports
+                for a in node.names:
+                    asname = a.asname
+                    if asname is None:
+                        asname = a.name
+                    i.append((a.name, asname))
+                continue
+            else:
+                continue
+
             if name.startswith("_"):
                 continue
 
-            # Check the object type
-            if inspect.isclass(data):
-                container, attr = classes, "__module__"
-            elif inspect.isfunction(data):
-                container, attr = functions, "__module__"
-            elif inspect.ismodule(data) and (name != "version"):
-                container, attr = modules, "__package__"
-            else:
-                continue
-
-            source = getattr(data, attr)
-            if ((source != package_name) and not
-                (source.startswith(package_name + "."))):
-                continue
-
             # Gather the doc for this object
-            file_ = inspect.getsourcefile(data).split(package_name + "/")[-1]
-            _, lineno = inspect.getsourcelines(data)
-            doc = inspect.getdoc(data)
-            if doc is not None:
-                doc = doc.split(
-                    "\n\nCopyright (C) 2018 The GRAND collaboration",1)[0]
-                doc = inspect.cleandoc(doc)
+            try:
+                doc = ast.get_docstring(node, clean=True)
+            except:
+                doc = ""
+            container[name] = (node.lineno, doc)
 
-            if container is modules:
-                info = (file_, lineno, doc, gather(data)) 
-            else:
-                info = (file_, lineno, doc)
 
-            container[name] = info 
+    # Parse the package and its submodules recursively
+    def parse(path, data):
+        # Gather the top level doc
+        gather_module(os.path.join(path, "__init__.py"), data,
+                      check_imports=True)
 
-        return {"classes": classes, "functions": functions, "modules": modules}
+        # Gather sub modules
+        modules = {}
+        data["modules"] = modules
 
-    # Import the package
-    sys.path.append(package_dir)
-    package = importlib.import_module(package_name)
+        abspath = os.path.join(package_dir, path)
+        for filename in glob.glob(os.path.join(abspath, "*.py")):
+            basename = os.path.basename(filename)
+            if (basename == "__init__.py") or (basename == "version.py") or    \
+                basename.startswith("_"):
+                continue
+            name, _ = os.path.splitext(basename)
 
-    # Gather the doc and return
-    return gather(package)
+            d = {}
+            modules[name] = d
+            gather_module(os.path.join(path, basename), d)
+
+        for dirname in os.listdir(abspath):
+            if not os.path.exists(
+                os.path.join(abspath, dirname, "__init__.py")):
+                continue
+
+            d = {}
+            modules[dirname] = d
+            parse(os.path.join(path, dirname), d)
+
+    # Generate the doc, starting from the top level
+    data = {}
+    parse(package_name, data)
+
+    # Update the doc with local imports
+    #
+    def get_module(vpath):
+        # Get a module given a vector path of module names
+        module = data
+        for name in vpath:
+            try:
+                module = module["modules"][name]
+            except KeyError:
+                return None
+        return module
+
+    def update_module(source_path):
+        # Get the source module
+        source = get_module(source_path)
+
+        # Check for local imports in the source, i.e. `__init__.py`
+        try:
+            source_imports = source["imports"]
+        except KeyError:
+            return
+
+        # Get the target module
+        for level, iimps in source_imports.items():
+            level = level - 1
+            for module_name, imps in iimps.items():
+                if level:
+                    module_path = source_path[:-level]
+                else:
+                    module_path = source_path[:]
+                module_path += module_name.split(".")
+
+                module = get_module(module_path)
+                if module is None:
+                    continue
+
+                # Expand start imports
+                for (name, alias) in imps:
+                    if name == "*":
+                        try:
+                            symbols = module["__all__"]
+                        except KeyError:
+                            symbols = list(module["classes"].keys()) +         \
+                                      list(module["definitions"].keys()) +     \
+                                      list(module["functions"].keys())
+                        imps = [(s, s) for s in symbols]
+                        break
+
+                # Update the source module
+                for (name, alias) in imps:
+                    for category in ("classes", "definitions", "functions"):
+                        if name in module[category]:
+                            break
+                    else:
+                        continue
+                    info = module[category][name]
+                    source[category][alias] = (*info, module["path"])
+
+        # Process the submodule(s)
+        try:
+            source_modules = source["modules"]
+        except KeyError:
+            return
+
+        for module_name in source_modules.keys():
+            update_module(source_path + [module_name])
+
+    # Update the module data recursively
+    update_module([])
+
+    return data
+
 
 def analyse_package(package_dir, package_name):
     """Analyse the content of a package and dump statistics"""
