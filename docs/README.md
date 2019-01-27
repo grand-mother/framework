@@ -4,8 +4,8 @@ _Common framework for GRAND packages_
 
 ## Description
 
-This is a utility for managing and distributing GRAND packages within a common
-_standard_ framework. It provides:
+This is a set of utilities for managing and distributing GRAND Python3 packages
+within a common _standard_ framework. It provides:
 
 - An encapsulation of `setuptools` for building a version controlled package
   that includes GRAND meta data.
@@ -13,16 +13,23 @@ _standard_ framework. It provides:
 - Continuous Integration (CI) tests, both locally, with git hooks, and
   via [GitHub][GITHUB].
 
-- ~~An automatic documentation generation~~, well ... soon it should.
+- An automatic documentation generation, from docstrings embeded in the source.
+  An analysis of the documentation coverage is done at each commit.
+
+#### Command line tools
 
 This utility ships with an executable, `grand-pkg-init`, which allows to create
-or convert an existing GRAND package, as:
+~~or convert~~ an existing GRAND package, as:
 ```bash
 grand-pkg-init path/to/package
 ```
 Then, you might need to answer a few questions in order to configure the GRAND
 package.
 
+#### Web integration
+
+The packages statistics, and their documentation, can be browsed online from
+the GRAND [packages pages](https://grand-mother.github.io/site/packages.html).
 
 ## Installation
 

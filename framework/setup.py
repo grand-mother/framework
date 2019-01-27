@@ -47,13 +47,57 @@ Operating System :: POSIX
 Operating System :: Unix
 Operating System :: MacOS
 """
+"""Default PyPi classifiers for GRAND packages
+"""
 
 
 _PACKAGE_DIR = "."
 
 
 def make_version_module(package, version):
-    """Build the version.py module for the distribution"""
+    """
+    Build the version.py module for the distribution
+
+    ### This is an example of documentation
+    **Any** thing could go here. For example as:
+    ```c
+        int main(int nargc, char * argv[])
+        {
+            return 0;
+        }
+    ```
+    - But this is ~~not~~.
+
+    Parameters
+    ----------
+    package : str
+        The git package name
+    version : str
+        The full version tag
+
+    Returns
+    -------
+    toto : None
+        This is nasty
+    str
+        Guess?
+
+    Yields
+    ------
+
+    toto : None
+        This is nasty
+    str
+        Guess?
+
+    Raises
+    ------
+    RuntimeError
+        Never do that again
+    FatalMistake
+        Try again
+
+    """
 
     status = system("git status --porcelain")
     if status and not ("pip-delete-this-directory.txt" in str(status)):
@@ -61,7 +105,6 @@ def make_version_module(package, version):
 
     githash = system("git rev-parse HEAD").strip()
 
-# -*- coding: utf-8 -*-
     content = os.linesep.join((
         "# -*- coding: utf-8 -*-",
         '"""',

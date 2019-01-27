@@ -27,7 +27,8 @@ def main():
         install_requires = (
             "setuptools>=40.0.0",
             "wheel>=0.32.0",
-            "autopep8>=1.4.0"
+            "autopep8>=1.4.0",
+            "astor>=0.7.1"
         ),
         entry_points = {
             "console_scripts" : (

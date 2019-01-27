@@ -20,11 +20,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import ast
 import glob
-import importlib
 import json
 import os
+import re
 import subprocess
 import sys
+
+try:
+    import astor
+except ModuleNotFoundError:
+    astor = None
 
 try:
     from pycodestyle import StyleGuide
@@ -133,6 +138,164 @@ def check_style(path):
 def gather_doc(package_dir, package_name):
     """Gather public objects and their associated docstrings"""
 
+    # Container for documentation statistics
+    statistics = {}
+
+    def increment_tokens(path, count=1):
+        """Helper function for updating the number of tokens"""
+        try:
+            data = statistics[path]
+        except KeyError:
+            data = {"tokens": {}, "n_errors": 0, "n_tokens": 0}
+
+        data["n_tokens"] += count
+
+    def register_error(path, tag, lineno, message):
+        """Helper function for recording a doc error"""
+
+        # Unpack the error data
+        try:
+            data = statistics[path]
+        except KeyError:
+            data = set([])
+            tmp = {"tokens": {tag: [lineno, data]}, "n_errors": 0,
+                   "n_tokens": 0}
+            statistics[path] = tmp
+        else:
+            try:
+                data = data["tokens"][tag]
+            except KeyError:
+                tmp = set([])
+                data["tokens"][tag] = [lineno, tmp]
+                data = tmp
+            else:
+                data = data[1]
+
+        # Update the error data
+        n = len(data)
+        data.add(message)
+        if len(data) > n:
+            statistics[path]["n_errors"] += 1
+
+    def get_doc(node):
+        """Get the docstring of a node"""
+        try:
+            doc = ast.get_docstring(node, clean=True)
+        except:
+            return ""
+        else:
+            if doc is None:
+                doc = ""
+            return doc
+
+    def get_docstr(nodes, index):
+        """Try to get a docstring at the given index"""
+        try:
+            n = nodes[index]
+        except IndexError:
+            pass
+        else:
+            if isinstance(n, ast.Expr) and isinstance(n.value, ast.Str):
+                return n.value.s
+        return ""
+
+    re_section = re.compile(
+        f"{os.linesep} *(\\w*) *[:]? *{os.linesep} *---* *{os.linesep}")
+    re_arg = re.compile("(\\w*) *[:]? *(.*)")
+
+    def get_function_doc(path, prefix, node):
+        """Parse a function or method docstring in numpy style"""
+
+        # Initialise the function meta from the AST
+        function_tag = f"{prefix}{node.name}"
+        function_line = node.lineno
+        docstr = get_doc(node)
+        params = {}
+        meta = {"parameters": params,
+                "prototype": astor.to_source(node.args)[:-1]}
+        args = node.args
+        tags = [a.arg for i, a in enumerate(args.args)
+                if (i > 0) or (a.arg != "self")]
+        tags += [a.arg for a in args.kwonlyargs]
+        if args.vararg:
+            tags.append(f"*{args.vararg.arg}")
+        if args.kwarg:
+            tags.append(f"**{args.kwarg.arg}")
+        for tag in tags:
+            params[tag] = None
+        increment_tokens(path, count=len(tags))
+
+        def validated():
+            """Validate the doc data and return them"""
+            if not docstr:
+                register_error(path, function_tag, function_line,
+                    "Missing description")
+            increment_tokens(path)
+
+            for name, value in meta["parameters"].items():
+                if value is None:
+                    register_error(path, function_tag, function_line,
+                        f"Undocumented parameter `{name}`")
+            return docstr, meta
+
+        # Parse the docstring
+        sections = re_section.split(docstr)
+        if len(sections) == 1:
+            return validated()
+
+        def get_items(body):
+            lines = [line.strip() for line in body.split(os.linesep)]
+            lines = tuple(filter(lambda x:len(x), lines))
+            n = int(len(lines) / 2)
+            return [lines[2 * i:2 * i + 2] for i in range(n)]
+
+        docstr = [sections[0]]
+        n = int((len(sections) - 1) / 2)
+        for i in range(n):
+            title, body = sections[2 * i + 1: 2 * i + 3]
+            title = title.lower()
+            if title == "parameters":
+                items = get_items(body)
+                args = meta[title]
+                for item in items:
+                    m = re_arg.match(item[0])
+                    if m is None:
+                        continue
+                    name, types = m.groups()
+                    if name in args:
+                        args[name] = (types, item[1])
+                    else:
+                        increment_tokens(path)
+                        register_error(path, function_tag, function_line,
+                            f"Unknown parameter `{name}`")
+            elif (title == "returns") or (title == "yields"):
+                items = get_items(body)
+                rets = []
+                for item in items:
+                    m = re_arg.match(item[0])
+                    if m is None:
+                        continue
+                    name, types = m.groups()
+                    if len(types) == 0:
+                        name, types = types, name
+                    rets.append((types, item[1], name))
+                    increment_tokens(path)
+                meta[title] = rets
+            elif title == "raises":
+                meta[title] = get_items(body)
+                increment_tokens(path)
+            else:
+                docstr.append(os.linesep.join(
+                    ("", title.capitalize(), len(title) * "-", body)))
+        docstr = "".join(docstr)
+
+        # Return the validated data
+        return validated()
+
+    def parse_assign(node):
+        """Parse an ast.Assign node"""
+        return ", ".join([t.id for t in node.targets])
+
     def gather_module(path, data, check_imports=False):
         """Gather module top level nodes"""
 
@@ -152,17 +315,41 @@ def gather_doc(package_dir, package_name):
         data["imports"] = imports
         data["path"] = path
 
-        for node in module.body:
+        for index, node in enumerate(module.body):
+            docstr = None
+
             # Check the object type
             if isinstance(node, ast.ClassDef):
+                bases = [astor.to_source(b)[:-1] for b in node.bases]
+                bases = [b for b in bases if b != "object"]
+
+                meths, attrs = {}, {}
+                extra = {"attributes": attrs, "methods": meths, "bases": bases}
+                for i, subnode in enumerate(node.body):
+                    if isinstance(subnode, ast.FunctionDef):
+                        doc, meta = get_function_doc(
+                            path, f"{node.name}.", subnode)
+                        meths[subnode.name] = (subnode.lineno, doc, meta)
+                    elif isinstance(subnode, ast.Assign):
+                        name = parse_assign(subnode)
+                        doc = get_docstr(node.body, i+1)
+                        if not doc:
+                            register_error(path, node.name, node.lineno,
+                                f"Undocumented attribute `{name}`")
+                        increment_tokens(path)
+                        attrs[name] = (subnode.lineno, doc, None)
+
                 container, name = classes, node.name
             elif isinstance(node, ast.FunctionDef):
+                docstr, extra = get_function_doc(path, "", node)
                 container, name = functions, node.name
             elif isinstance(node, ast.Assign):
-                name = ", ".join([t.id for t in node.targets])
+                name = parse_assign(node)
                 if name == "__all__":
                     data[name] = [a.s for a in node.value.elts]
                     continue
+                extra = None
+                docstr = get_docstr(module.body, index + 1)
                 container = definitions
             elif check_imports and isinstance(node, ast.ImportFrom):
                 # Skip global imports
@@ -195,12 +382,13 @@ def gather_doc(package_dir, package_name):
             if name.startswith("_"):
                 continue
 
-            # Gather the doc for this object
-            try:
-                doc = ast.get_docstring(node, clean=True)
-            except:
-                doc = ""
-            container[name] = (node.lineno, doc)
+            if docstr is None:
+                docstr = get_doc(node)
+            if not docstr:
+                register_error(path, name, node.lineno, "Missing description")
+            increment_tokens(path)
+
+            container[name] = (node.lineno, docstr, extra)
 
 
     # Parse the package and its submodules recursively
@@ -235,7 +423,7 @@ def gather_doc(package_dir, package_name):
             parse(os.path.join(path, dirname), d)
 
     # Generate the doc, starting from the top level
-    data = {}
+    data = {"statistics": statistics}
     parse(package_name, data)
 
     # Update the doc with local imports
@@ -308,7 +496,33 @@ def gather_doc(package_dir, package_name):
     # Update the module data recursively
     update_module([])
 
+    # Convert the statistics data to tuples, for JSON
+    for _, outer in statistics.items():
+        for _, inner in outer["tokens"].items():
+            inner[1] = [v for v in inner[1]]
+
     return data
+
+
+def _Informer():
+    """Closure for a terminal logger"""
+    max_length = [0]
+
+    def inform(msg, end=False):
+        n = len(msg)
+        if n < max_length[0]:
+            msg += (max_length[0] - n) * " "
+        else:
+            max_length[0] = n
+
+        end = {True: "\r", False: ""}[end]
+        print("\r" + msg, end=end)
+
+    return inform
+
+
+_inform = _Informer()
+"""Log messages to the terminal""" 
 
 
 def analyse_package(package_dir, package_name):
@@ -316,8 +530,14 @@ def analyse_package(package_dir, package_name):
 
     path = os.path.join(package_dir, package_name)
     stats = {}
+
+    _inform("Counting lines ...")
     stats["lines"] = count_lines(path)
+
+    _inform("Checking style ...")
     stats["pep8"] = check_style(path)
+
+    _inform("Building the documentation ...")
     stats["doc"] = gather_doc(package_dir, package_name)
 
     path = os.path.join(package_dir, ".stats.json")
@@ -370,7 +590,7 @@ def update_readme(package_dir, package_name, stats, readme):
             "/blob/master/docs/.stats.json",
         "badge/pep8-{:}%25-{:}.svg", shield=(score, color))
 
-    # Coverage badge
+    # Code coverage badge
     base_url = "https://codecov.io/gh/grand-mother/"
     add_badge(
         "Code coverage",
@@ -383,6 +603,19 @@ def update_readme(package_dir, package_name, stats, readme):
         "Build status",
         base_url + git_name,
         "{:}{:}.svg?branch=master", image=(base_url, git_name))
+
+    n_tokens, n_errors = 0, 0
+    for _, v in stats["doc"]["statistics"].items():
+        n_tokens += v["n_tokens"]
+        n_errors += v["n_errors"]
+
+    score = int(100. * (n_tokens - n_errors) / float(n_tokens))
+    color = colormap(score)
+    add_badge(
+        "Documentation",
+        "https://grand-mother.github.io/site/reports.html?" +
+            git_name + "/docs",
+        "badge/docs-{:}%25-{:}.svg", shield=(score, color))
 
     # PyPi badge
     add_badge(
@@ -435,7 +668,11 @@ def pre_commit():
     stats = analyse_package(package_dir, package_name)
 
     # Update the package README
+    _inform("Generating the README...")
     update_readme(package_dir, package_name, stats, readme)
+
+    # Exit back to the OS
+    _inform("", end=True)
     sys.exit(0)
 
 
