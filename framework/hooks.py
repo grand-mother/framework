@@ -609,7 +609,10 @@ def update_readme(package_dir, package_name, stats, readme):
         n_tokens += v["n_tokens"]
         n_errors += v["n_errors"]
 
-    score = int(100. * (n_tokens - n_errors) / float(n_tokens))
+    if n_tokens:
+        score = int(100. * (n_tokens - n_errors) / float(n_tokens))
+    else:
+        score = 100
     color = colormap(score)
     add_badge(
         "Documentation",

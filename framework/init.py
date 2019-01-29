@@ -95,16 +95,19 @@ _{description:}_
 
 ## Installation
 
+_GRAND packages require python3.7. If can be installed from the
+[tarball](https://www.python.org/downloads) on Linux or with brew on OSX._
+
 The latest stable version of this package can be installed from [PyPi][PYPI]
 using [pip][PIP], e.g. as:
 ```bash
-pip install --user {dist_name:}
+pip3 install --user {dist_name:}
 ```
 
 Alternatively one can also install the latest development commit directly from
 [GitHub][GITHUB], as:
 ```bash
-pip install --user git+https://github.com/grand-mother/{git_name:}.git@master
+pip3 install --user git+https://github.com/grand-mother/{git_name:}.git@master
 ```
 
 
@@ -326,7 +329,8 @@ def main():
 
     # Set system calls
     def quiet_system(cmd):
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, shell=True)
         p.communicate()
 
     system = quiet_system if args.quiet else os.system
