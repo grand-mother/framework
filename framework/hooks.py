@@ -215,7 +215,7 @@ def gather_doc(package_dir, package_name):
                 "prototype": astor.to_source(node.args)[:-1]}
         args = node.args
         tags = [a.arg for i, a in enumerate(args.args)
-                if (i > 0) or (a.arg != "self")]
+                if (i > 0) or ((a.arg != "self") and (a.arg != "cls"))]
         tags += [a.arg for a in args.kwonlyargs]
         if args.vararg:
             tags.append(f"*{args.vararg.arg}")
