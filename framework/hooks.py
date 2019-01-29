@@ -223,7 +223,6 @@ def gather_doc(package_dir, package_name):
             tags.append(f"**{args.kwarg.arg}")
         for tag in tags:
             params[tag] = None
-        increment_tokens(path, count=len(tags))
 
         def validated():
             """Validate the doc data and return them"""
@@ -236,6 +235,7 @@ def gather_doc(package_dir, package_name):
                 if value is None:
                     register_error(path, function_tag, function_line,
                         f"Undocumented parameter `{name}`")
+                increment_tokens(path)
             return docstr, meta
 
         # Parse the docstring
@@ -357,17 +357,18 @@ def gather_doc(package_dir, package_name):
                     continue
 
                 # Create or get the container
+                module_name = node.module if node.module is not None else ""
                 try:
                     ii = imports[node.level]
                 except KeyError:
                     i = []
-                    imports[node.level] = {node.module: i}
+                    imports[node.level] = {module_name: i}
                 else:
                     try:
-                        i = ii[node.module]
+                        i = ii[module_name]
                     except KeyError:
                         i = []
-                        ii[node.module] = i
+                        ii[module_name] = i
 
                 # Append the symbol and its alias to the liss of imports
                 for a in node.names:
