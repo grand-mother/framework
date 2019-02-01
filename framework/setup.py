@@ -252,7 +252,12 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
         include_package_data = True,
         classifiers = all_classifiers,
 
-        cmdclass = { "distclean" : DistClean }
+        # Custom clean command
+        cmdclass = { "distclean" : DistClean },
+
+        # The tests suite is explicitly given, to prevent a detailed inspection
+        # of the package by the tests discovery tools
+        test_suite="tests"
     ))
 
     # User meta data
