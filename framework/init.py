@@ -43,10 +43,10 @@ def get_data_dir():
     return os.path.abspath(path)
 
 
-def copy(data_dir, target_dir, file_):
+def copy(data_dir, target_dir, file_, force=False):
     """Copy a file out of the data folder to a target directory"""
     dst = os.path.join(target_dir, file_)
-    if not os.path.exists(dst):
+    if force or not os.path.exists(dst):
         src = os.path.join(data_dir, file_)
         shutil.copyfile(src, dst)
 
@@ -343,11 +343,11 @@ def main():
     mkdir(package_dir)
 
     # Add static file, e.g. licensing
-    copy(data_dir, package_dir, "LICENSE")
-    copy(data_dir, package_dir, "COPYING.LESSER")
+    copy(data_dir, package_dir, "LICENSE", force=True)
+    copy(data_dir, package_dir, "COPYING.LESSER", force=True)
     copy(data_dir, package_dir, "MANIFEST.in")
     copy(data_dir, package_dir, ".gitignore")
-    copy(data_dir, package_dir, ".travis.yml")
+    copy(data_dir, package_dir, ".travis.yml", force=True)
 
     # Initialise the docs
     docs_dir = os.path.join(package_dir, "docs")
