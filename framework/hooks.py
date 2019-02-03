@@ -147,6 +147,7 @@ def gather_doc(package_dir, package_name):
             data = statistics[path]
         except KeyError:
             data = {"tokens": {}, "n_errors": 0, "n_tokens": 0}
+            statistics[path] = data
 
         data["n_tokens"] += count
 
@@ -201,7 +202,7 @@ def gather_doc(package_dir, package_name):
 
     re_section = re.compile(
         f"{os.linesep} *(\\w*) *[:]? *{os.linesep} *---* *{os.linesep}")
-    re_arg = re.compile("(\\w*) *[:]? *(.*)")
+    re_arg = re.compile("([*]*\\w*) *[:]? *(.*)")
 
     def get_function_doc(path, prefix, node):
         """Parse a function or method docstring in numpy style"""
