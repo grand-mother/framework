@@ -41,11 +41,16 @@ try:
 except:
     from framework.setup import get_alts, system
 try:
-    from version import __version__
+    from framework.version import __version__, __git__
 except ImportError:
     __version__ = "unknown"
+    __git__ = {}
 
 __all__ = ["pre_commit", "prepare_commit_msg"]
+
+
+_STATS_FILE = ".stats.json"
+"""Name of the statistics file"""
 
 
 def git(*args):
@@ -542,7 +547,10 @@ def analyse_package(package_dir, package_name):
     _inform("Building the documentation ...")
     stats["doc"] = gather_doc(package_dir, package_name)
 
-    path = os.path.join(package_dir, ".stats.json")
+    _inform("Dumping framework info...")
+    stats["framework"] = { "version": __version__, "git": __git__ }
+
+    path = os.path.join(package_dir, _STATS_FILE)
     with open(path, "w") as f:
         json.dump(stats, f)
 
@@ -657,6 +665,27 @@ def pre_commit():
     """Git hook for pre-processing a commit"""
 
     package_dir = get_top_directory()
+
+    # Check for a framework update
+    _inform("Checking for a framework update...")
+    path = os.path.join(package_dir, _STATS_FILE)
+    try:
+        with open(path, "r") as f:
+            stats = json.load(f)
+    except FileNotFoundError:
+        pass
+    else:
+        try:
+            count = stats["framework"]["git"]["count"]
+        except KeyError:
+            pass
+        else:
+            if __git__["count"] < count:
+                _inform("A framework update is required. Aborting...")
+                print()
+                sys.exit(1)
+
+    # Load the content of the README file
     path = os.path.join(package_dir, "docs", "README.md")
     with open(path, "r") as f:
         readme = f.read()

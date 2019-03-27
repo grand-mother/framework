@@ -277,7 +277,7 @@ else:
 
         def test_hash(self):
             githash = git("rev-parse", "HEAD")
-            self.assertEqual(githash.strip(), {0:}.version.__githash__)
+            self.assertEqual(githash.strip(), {0:}.version.__git__["sha1"])
 
         def test_version(self):
             self.assertIsNotNone({0:}.version.__version__)
