@@ -185,6 +185,7 @@ class DistClean(Command):
 
         remove_directory("build")
         remove_directory("dist")
+        remove_directory("__pycache__")
         for path in glob.glob("*.egg-info"):
             remove_directory(path)
 
@@ -193,6 +194,9 @@ class DistClean(Command):
         for package in packages:
             source_dir = os.path.join(_PACKAGE_DIR, package)
             print("cleaning " + package + " source")
+
+            path = os.path.join(source_dir, "__pycache__")
+            shutil.rmtree(path, ignore_errors=True)
 
             path = os.path.join(source_dir, "version.py")
             if os.path.exists(path):
