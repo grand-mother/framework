@@ -11,8 +11,8 @@ import unittest
 from framework import cli, RunContext
 
 
-class InitTest(unittest.TestCase):
-    """Unit tests for the init command"""
+class CLITest(unittest.TestCase):
+    """Unit tests for the CLI"""
 
     @classmethod
     def setUpClass(cls):
@@ -29,7 +29,7 @@ class InitTest(unittest.TestCase):
         shutil.rmtree(cls.tmpdir)
         os.chdir(cls._pwd)
 
-    def create(self, package_name, code=0):
+    def init(self, package_name, code=0):
         path = os.path.join(self.tmpdir, package_name)
         args = ("grand-pkg-init", "--default", "--quiet", path) 
         with RunContext(*args) as context:
@@ -37,17 +37,32 @@ class InitTest(unittest.TestCase):
         self.assertEqual(context.err, "")
         self.assertEqual(context.code, code)
 
+    def update(self, package_name, code=0):
+        path = os.path.join(self.tmpdir, package_name)
+        args = ("grand-pkg-update", "--quiet", path)
+        with RunContext(*args) as context:
+            cli.update()
+        self.assertEqual(context.err, "")
+        self.assertEqual(context.code, code)
+
     def test_create_simple(self):
-        self.create("toto")
+        path = "toto"
+        self.init(path)
+        self.update(path)
 
     def test_create_composite(self):
-        self.create("toto-composite")
+        path = "toto-composite"
+        self.init(path)
+        self.update(path)
 
     def test_create_nested(self):
-        self.create(os.path.join("tata", "toto-composite"))
+        self.init(os.path.join("tata", "toto-composite"))
+
+    def test_upper(self):
+        self.init("Titi")
 
     def test_existing(self):
-        self.create("toto", code=1)
+        self.init("toto", code=1)
 
     def test_import(self):
         path = os.path.join(self.tmpdir, "toto")

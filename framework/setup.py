@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 """
 
 import glob
+import json
 import os
 import shutil
 import subprocess
@@ -26,6 +27,7 @@ import sys
 
 from distutils.core import Command
 from setuptools import setup, find_packages
+from . import PKG_FILE
 
 try:
     system = subprocess.getoutput
@@ -130,39 +132,17 @@ def make_version_module(package, version):
         f.write(content)
 
 
-def get_alts(package_name):
-    """Get alternative names for the package"""
-    git_name = package_name.replace("_", "-")
-    if git_name.startswith("grand-"):
-        dist_name = git_name
-    else:
-        dist_name = "grand-" + git_name
-    return git_name, dist_name
+def get_meta():
+    """Load the package meta_data"""
 
-
-def parse_readme(path=None):
-    """Parse some meta data from the README.md"""
-
-    if path is None:
-        path = os.path.join(_PACKAGE_DIR, "docs/README.md")
-
-    meta = {}
-    package_name = None
+    path = os.path.join(_PACKAGE_DIR, PKG_FILE)
     with open(path, "r") as f:
-        for line in f:
-            if line.startswith("#"):
-                package_name = line[1:].strip().lower().replace(" ", "_")
-            elif package_name is not None:
-                meta["description"] = line.replace("_", " ").strip()
-                break
+        pkg_data = json.load(f)["package"]
 
-    if package_name is None:
-        raise RuntimeError("Invalid README.md")
+    meta = {"name": pkg_data["dist-name"],
+            "description": pkg_data["description"]}
 
-    git_name, dist_name = get_alts(package_name)
-    meta["name"] = dist_name
-
-    return package_name, git_name, meta
+    return pkg_data["name"], pkg_data["git-name"], meta
 
 
 class DistClean(Command):
@@ -234,8 +214,8 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
     # Format the version string
     version = "{:d}.{:d}.{:d}".format(*numeric_version)
 
-    # Parse some top level meta data from the README.md
-    package_name, git_name, meta = parse_readme()
+    # Get the package meta data
+    package_name, git_name, meta = get_meta()
 
     if not clean:
         # Make the version module. Note that this will check the git

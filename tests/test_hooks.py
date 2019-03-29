@@ -7,7 +7,7 @@ import os
 import shutil
 import unittest
 
-from framework import hooks, RunContext
+from framework import PKG_FILE, hooks, RunContext
 
 
 class HooksTest(unittest.TestCase):
@@ -33,7 +33,7 @@ class HooksTest(unittest.TestCase):
             hooks.pre_commit()
 
         # Clean any modified file
-        for file_ in (".stats.json", "README.md"):
+        for file_ in (PKG_FILE, "README.md"):
             hooks.git("reset", file_)
             hooks.git("checkout", file_)
 

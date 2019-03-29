@@ -37,9 +37,10 @@ except ImportError:
     StyleGuide = None
 
 try:
-    from .setup import get_alts, system
-except:
-    from framework.setup import get_alts, system
+    from .setup import system
+except ImportError:
+    from framework.setup import system
+
 try:
     from framework.version import __version__, __git__
 except ImportError:
@@ -530,11 +531,11 @@ _inform = _Informer()
 """Log messages to the terminal""" 
 
 
-def analyse_package(package_dir, package_name):
-    """Analyse the content of a package and dump statistics"""
+def analyse_package(package_dir, stats):
+    """Analyse the content of a package and dump its statistics"""
 
+    package_name = stats["package"]["name"]
     path = os.path.join(package_dir, package_name)
-    stats = {}
 
     _inform("Counting lines ...")
     stats["lines"] = count_lines(path)
@@ -551,14 +552,22 @@ def analyse_package(package_dir, package_name):
     path = os.path.join(package_dir, PKG_FILE)
     with open(path, "w") as f:
         json.dump(stats, f)
+        f.write(os.linesep)
 
     git("add", path)
 
     return stats
 
 
-def update_readme(package_dir, package_name, stats, readme):
+def update_readme(package_dir, stats):
     """Update the package README"""
+
+    # Load the content of the user README file
+    path = os.path.join(package_dir, "docs", "README.md")
+    with open(path, "r") as f:
+        readme = f.read()
+
+    # Decorate the README
     preamble = [
 """\
 <!--
@@ -588,14 +597,16 @@ def update_readme(package_dir, package_name, stats, readme):
         return colors[index]
 
     # PEP8 badge
-    git_name, dist_name = get_alts(package_name)
+    pkg_data = stats["package"]
+    package_name, git_name, dist_name = map(lambda s: pkg_data[s],
+                                            ("name", "git-name", "dist-name"))
     lines = stats["lines"]["code"]
     score = int(100. * (lines - stats["pep8"]["count"]) / float(lines))
     color = colormap(score)
     add_badge(
         "Coding style",
         "https://github.com/grand-mother/" + git_name +
-            "/blob/master/docs/.stats.json",
+            "/blob/master/docs/" + PKG_FILE,
         "badge/pep8-{:}%25-{:}.svg", shield=(score, color))
 
     # Code coverage badge
@@ -671,37 +682,26 @@ def pre_commit():
         with open(path, "r") as f:
             stats = json.load(f)
     except FileNotFoundError:
+        _inform("This is not a valid GRAND package. Aborting...")
+        print()
+        sys.exit(1)
+
+    try:
+        count = stats["framework"]["git"]["count"]
+    except KeyError:
         pass
     else:
-        try:
-            count = stats["framework"]["git"]["count"]
-        except KeyError:
-            pass
-        else:
-            if __git__["count"] < count:
-                _inform("A framework update is required. Aborting...")
-                print()
-                sys.exit(1)
+        if __git__["count"] < count:
+            _inform("A framework update is required. Aborting...")
+            print()
+            sys.exit(1)
 
-    # Load the content of the README file
-    path = os.path.join(package_dir, "docs", "README.md")
-    with open(path, "r") as f:
-        readme = f.read()
-
-    # Parse the package name from the docs/README
-    tail = readme
-    while tail:
-        line, tail = tail.split(os.linesep, 1) 
-        if line and (line[0] == "#"):
-            package_name = line[1:].strip().lower().replace(" ", "_")
-            break
-
-    # Compute the stats
-    stats = analyse_package(package_dir, package_name)
+    # Update the stats
+    analyse_package(package_dir, stats)
 
     # Update the package README
     _inform("Generating the README...")
-    update_readme(package_dir, package_name, stats, readme)
+    update_readme(package_dir, stats)
 
     # Exit back to the OS
     _inform("", end=True)

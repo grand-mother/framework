@@ -28,7 +28,7 @@ except ImportError:
 
 
 # Package globals
-PKG_FILE = ".stats.json"
+PKG_FILE = ".grand-pkg.json"
 """File where GRAND package specific data are stored"""
 
 PKG_PREFIX = "grand-pkg-"

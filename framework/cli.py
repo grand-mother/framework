@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 """
 
 import argparse
-import pip
+import json
 import os
 import shutil
 import subprocess
@@ -28,7 +28,6 @@ import sys
 from distutils.spawn import find_executable
 from setuptools import setup, find_packages
 from . import PKG_FILE, PKG_PREFIX
-from .setup import parse_readme
 
 try:
     input = input
@@ -36,6 +35,10 @@ except:
     pass
 
 __all__ = [ "main" ]
+
+
+_DEFAULT_DESCRIPTION = "Add a brief description"
+"""Default description for GRAND packages"""
 
 
 def get_data_dir():
@@ -363,50 +366,50 @@ def init(args=None):
     docs_dir = os.path.join(package_dir, "docs")
     mkdir(docs_dir)
 
+    # Get the package name from any existing source
+    packages = find_packages(package_dir, exclude=("tests",))
+    if len(packages) == 1:
+        default_name = packages[0].lower()
+    else:
+        default_name = os.path.basename(package_dir).replace("-", "_").lower()
+
+    # Prompt the package meta data
+    if args.use_default:
+        package_name = default_name
+    else:
+        prompt = "Please enter the package name [{:}]: ".format(
+            default_name)
+        package_name = input(prompt).strip()
+        if not package_name:
+            package_name = default_name
+    if not package_name:
+        if not args.quiet:
+            print("Aborting ...")
+        sys.exit(0)
+    elif package_name != package_name.lower():
+        if not args.quiet:
+            print("Package names must be lower case (pep8) ...")
+        sys.exit(1)
+
+    if args.use_default:
+        description = _DEFAULT_DESCRIPTION
+    else:
+        prompt = "Please enter a brief description: "
+        description = input(prompt).strip()
+        if not description:
+            description = default_description 
+
+    git_name = package_name.replace("_", "-")
+    if git_name.startswith("grand-"):
+        dist_name = git_name
+    else:
+        dist_name = "grand-" + git_name
+
+    # Write a default README
     path = os.path.join(docs_dir, "README.md")
     if not os.path.exists(path):
-        # Get the package name from any existing source
-        packages = find_packages(package_dir, exclude=("tests",))
-        if len(packages) == 1:
-            default_name = packages[0]
-        else:
-            default_name = os.path.basename(package_dir).replace("-", "_")
-
-        # Prompt the package meta data
-        if args.use_default:
-            package_name = default_name
-        else:
-            prompt = "Please enter the package name [{:}]: ".format(
-                default_name)
-            package_name = input(prompt).strip()
-            if not package_name:
-                package_name = default_name
-        if not package_name:
-            if not args.quiet:
-                print("Aborting ...")
-            sys.exit(0)
-
-        default_description = "Add a brief description"
-        if args.use_default:
-            description = default_description
-        else:
-            prompt = "Please enter a brief description: "
-            description = input(prompt).strip()
-            if not description:
-                description = default_description 
-
-        git_name = package_name.replace("_", "-")
-        if git_name.startswith("grand-"):
-            dist_name = git_name
-        else:
-            dist_name = "grand-" + git_name
-
-        # Write a default README
         title = package_name.replace("_", " ").replace("-", " ").capitalize()
         write_readme(path, git_name, dist_name, title, description)
-    else:
-        package_name, _, meta = parse_readme(path)
-        description = meta["description"]
 
     # Write the configuration file for `coverage`
     path = os.path.join(package_dir, ".coveragerc")
@@ -453,6 +456,13 @@ def init(args=None):
     if not add_git_hook(git_dir, "pre-commit"): code = 1
     if not add_git_hook(git_dir, "prepare-commit-msg"): code = 1
 
+    # Dump the initial stats.
+    path = os.path.join(package_dir, PKG_FILE)
+    if not os.path.exists(path):
+        with open(path, "w") as f:
+            json.dump({"package": {"name": package_name, "git-name": git_name,
+                                   "dist-name": dist_name}}, f)
+
     # Do the initial commit
     if commit:
         command = ["cd " + package_dir]
@@ -468,6 +478,36 @@ def init(args=None):
 
     # Exit to the OS
     sys.exit(code)
+
+
+def _parse_readme(package_dir):
+    """Parse some meta data from the README.md"""
+
+    path = os.path.join(package_dir, "docs/README.md")
+    meta = {"description": _DEFAULT_DESCRIPTION}
+    package_name = None
+    with open(path, "r") as f:
+        for line in f:
+            if line.startswith("#"):
+                package_name = line[1:].strip().lower().replace(" ", "_")
+            elif package_name is not None:
+                meta["description"] = line.replace("_", " ").strip()
+                break
+
+    if package_name is None:
+        return None
+
+    git_name = package_name.replace("_", "-")
+    if git_name.startswith("grand-"):
+        dist_name = git_name
+    else:
+        dist_name = "grand-" + git_name
+
+    meta["name"] = package_name
+    meta["git-name"] = git_name
+    meta["dist-name"] = dist_name
+
+    return meta
 
 
 def update(args=None):
@@ -495,18 +535,23 @@ def update(args=None):
         return out.decode("utf-8")
 
     # Check for an update
-    out = system("pip3 install --user --upgrade grand-framework")
+    user = "" if hasattr(sys, "real_prefix") else "--user" # Hack for virtualenv
+    out = system("pip3 install {:} --upgrade grand-framework".format(user))
     if not out.startswith("Requirement already up-to-date: grand-framework"):
         print(out)
 
     # Set the package top directory
+    update_data = False
     package_dir = os.path.abspath(args.path)
     if os.path.exists(package_dir):
         path = os.path.join(package_dir, PKG_FILE)
         if not os.path.exists(path):
-            if not args.quiet:
-                print("Not a GRAND package ...")
-            sys.exit(1)
+            update_data = True
+            path = os.path.join(package_dir, ".stats.json")
+            if not os.path.exists(path):
+                if not args.quiet:
+                    print("Not a GRAND package ...")
+                sys.exit(1)
     else:
         if not args.quiet:
             print("Path does not exist ...")
@@ -524,6 +569,28 @@ def update(args=None):
     code = 0
     if not add_git_hook(git_dir, "pre-commit"): code = 1
     if not add_git_hook(git_dir, "prepare-commit-msg"): code = 1
+
+    # Check for old style meta
+    with open(path, "r") as f:
+        stats = json.load(f)
+
+    if not "package" in stats:
+        meta = _parse_readme(package_dir)
+        if meta is None:
+            if not args.quiet:
+                print("Could not parse package data from the README ...")
+            sys.exit(1)
+        update_data = True
+        stats["package"] = meta
+
+    if update_data:
+        old_path = os.path.join(package_dir, ".stats.json")
+        if os.path.exists(old_path):
+            system("git mv .stats.json " + PKG_FILE)
+        path = os.path.join(package_dir, PKG_FILE)
+        with open(path, "w") as f:
+            json.dump(stats, f)
+        system("git add " + PKG_FILE)
 
     # Exit to the OS
     sys.exit(code)
