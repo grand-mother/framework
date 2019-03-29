@@ -30,7 +30,7 @@ class SetupTest(unittest.TestCase):
             setup.main()
         self.assertEqual(context.err, "")
 
-    def test_build(self):
+    def test_rebuild(self):
         with RunContext("setup.py", "build") as context:
             setup.main()
         self.assertEqual(context.err, "")

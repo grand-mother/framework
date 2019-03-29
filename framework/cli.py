@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Initialiser for GRAND packages
+Command line interface for GRAND packages
 
 Copyright (C) 2018 The GRAND collaboration
 
@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 """
 
 import argparse
+import pip
 import os
 import shutil
 import subprocess
@@ -26,6 +27,7 @@ import sys
 
 from distutils.spawn import find_executable
 from setuptools import setup, find_packages
+from . import PKG_FILE, PKG_PREFIX
 from .setup import parse_readme
 
 try:
@@ -294,7 +296,7 @@ if __name__ == "__main__":
 def add_git_hook(git_dir, hook_name):
     """Add a hook for managing git workflow"""
 
-    exe_name = "grand-git-" + hook_name
+    exe_name = PKG_PREFIX + hook_name
     exe_path = find_executable(exe_name)
     if not exe_path:
         msg = ( "Warning: could not locate " + exe_name,
@@ -312,10 +314,11 @@ def add_git_hook(git_dir, hook_name):
     return True
 
 
-def main():
-    """Parse CLI arguments and initialise a local package"""
+def init(args=None):
+    """Initialise a bare GRAND package"""
 
-    parser = argparse.ArgumentParser(description='Initialise a GRAND package.')
+    parser = argparse.ArgumentParser(
+        description='Initialise a bare GRAND package.')
     parser.add_argument(
         "path", type = str, nargs = "?", default = ".",
         help = "the path to the package")
@@ -325,7 +328,7 @@ def main():
     parser.add_argument(
         "--quiet", dest = "quiet", action = "store_const",
         const = True, default = False, help = "suppress output")
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     # Set system calls
     def quiet_system(cmd):
@@ -340,7 +343,14 @@ def main():
 
     # Set the package top directory
     package_dir = os.path.abspath(args.path)
-    mkdir(package_dir)
+    if os.path.exists(package_dir):
+        path = os.path.join(package_dir, PKG_FILE)
+        if os.path.exists(path):
+            if not args.quiet:
+                print("Package already exists ...")
+            sys.exit(1)
+    else:
+        mkdir(package_dir)
 
     # Add static file, e.g. licensing
     copy(data_dir, package_dir, "LICENSE", force=True)
@@ -460,5 +470,67 @@ def main():
     sys.exit(code)
 
 
+def update(args=None):
+    """Update a GRAND package"""
+
+    parser = argparse.ArgumentParser(
+        description='Update a GRAND package.')
+    parser.add_argument(
+        "path", type = str, nargs = "?", default = ".",
+        help = "the path to the package")
+    parser.add_argument(
+        "--quiet", dest = "quiet", action = "store_const",
+        const = True, default = False, help = "suppress output")
+    args = parser.parse_args(args)
+
+    # Set system calls
+    def system(cmd):
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        if err:
+            if not args.quiet:
+                print(err.decode("utf-8"))
+            sys.exit(1)
+        return out.decode("utf-8")
+
+    # Check for an update
+    out = system("pip3 install --user --upgrade grand-framework")
+    if not out.startswith("Requirement already up-to-date: grand-framework"):
+        print(out)
+
+    # Set the package top directory
+    package_dir = os.path.abspath(args.path)
+    if os.path.exists(package_dir):
+        path = os.path.join(package_dir, PKG_FILE)
+        if not os.path.exists(path):
+            if not args.quiet:
+                print("Not a GRAND package ...")
+            sys.exit(1)
+    else:
+        if not args.quiet:
+            print("Path does not exist ...")
+        sys.exit(1)
+
+    # Update static files, e.g. licensing
+    data_dir = get_data_dir()
+
+    copy(data_dir, package_dir, "LICENSE", force=True)
+    copy(data_dir, package_dir, "COPYING.LESSER", force=True)
+    copy(data_dir, package_dir, ".travis.yml", force=True)
+
+    # Update the hooks for git
+    git_dir = os.path.join(package_dir, ".git")
+    code = 0
+    if not add_git_hook(git_dir, "pre-commit"): code = 1
+    if not add_git_hook(git_dir, "prepare-commit-msg"): code = 1
+
+    # Exit to the OS
+    sys.exit(code)
+
+
 if __name__ == "__main__":
-    main()
+    # Get the function to call from the command line
+    ret = globals()[sys.argv[1]](sys.argv[2:])
+    if ret is not None:
+        print(ret)

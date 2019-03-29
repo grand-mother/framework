@@ -28,7 +28,7 @@ import sys
 
 try:
     import astor
-except ModuleNotFoundError:
+except ImportError:
     astor = None
 
 try:
@@ -46,11 +46,9 @@ except ImportError:
     __version__ = "unknown"
     __git__ = {}
 
+from . import PKG_FILE
+
 __all__ = ["pre_commit", "prepare_commit_msg"]
-
-
-_STATS_FILE = ".stats.json"
-"""Name of the statistics file"""
 
 
 def git(*args):
@@ -206,14 +204,14 @@ def gather_doc(package_dir, package_name):
         return ""
 
     re_section = re.compile(
-        f"{os.linesep} *(\\w*) *[:]? *{os.linesep} *---* *{os.linesep}")
+        "{0:} *(\\w*) *[:]? *{0:} *---* *{0:}".format(os.linesep))
     re_arg = re.compile("([*]*\\w*) *[:]? *(.*)")
 
     def get_function_doc(path, prefix, node):
         """Parse a function or method docstring in numpy style"""
 
         # Initialise the function meta from the AST
-        function_tag = f"{prefix}{node.name}"
+        function_tag = prefix + node.name
         function_line = node.lineno
         docstr = get_doc(node)
         params = {}
@@ -224,9 +222,9 @@ def gather_doc(package_dir, package_name):
                 if (i > 0) or ((a.arg != "self") and (a.arg != "cls"))]
         tags += [a.arg for a in args.kwonlyargs]
         if args.vararg:
-            tags.append(f"*{args.vararg.arg}")
+            tags.append("*" + args.vararg.arg)
         if args.kwarg:
-            tags.append(f"**{args.kwarg.arg}")
+            tags.append("**" + args.kwarg.arg)
         for tag in tags:
             params[tag] = None
 
@@ -240,7 +238,7 @@ def gather_doc(package_dir, package_name):
             for name, value in meta["parameters"].items():
                 if value is None:
                     register_error(path, function_tag, function_line,
-                        f"Undocumented parameter `{name}`")
+                        "Undocumented parameter `{}`".format(name))
                 increment_tokens(path)
             return docstr, meta
 
@@ -273,7 +271,7 @@ def gather_doc(package_dir, package_name):
                     else:
                         increment_tokens(path)
                         register_error(path, function_tag, function_line,
-                            f"Unknown parameter `{name}`")
+                            "Unknown parameter `{}`".format(name))
             elif (title == "returns") or (title == "yields"):
                 items = get_items(body)
                 rets = []
@@ -334,14 +332,14 @@ def gather_doc(package_dir, package_name):
                 for i, subnode in enumerate(node.body):
                     if isinstance(subnode, ast.FunctionDef):
                         doc, meta = get_function_doc(
-                            path, f"{node.name}.", subnode)
+                            path, node.name + ".", subnode)
                         meths[subnode.name] = (subnode.lineno, doc, meta)
                     elif isinstance(subnode, ast.Assign):
                         name = parse_assign(subnode)
                         doc = get_docstr(node.body, i+1)
                         if not doc:
                             register_error(path, node.name, node.lineno,
-                                f"Undocumented attribute `{name}`")
+                                "Undocumented attribute `{}`".format(name))
                         increment_tokens(path)
                         attrs[name] = (subnode.lineno, doc, None)
 
@@ -550,7 +548,7 @@ def analyse_package(package_dir, package_name):
     _inform("Dumping framework info...")
     stats["framework"] = { "version": __version__, "git": __git__ }
 
-    path = os.path.join(package_dir, _STATS_FILE)
+    path = os.path.join(package_dir, PKG_FILE)
     with open(path, "w") as f:
         json.dump(stats, f)
 
@@ -668,7 +666,7 @@ def pre_commit():
 
     # Check for a framework update
     _inform("Checking for a framework update...")
-    path = os.path.join(package_dir, _STATS_FILE)
+    path = os.path.join(package_dir, PKG_FILE)
     try:
         with open(path, "r") as f:
             stats = json.load(f)

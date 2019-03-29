@@ -8,11 +8,11 @@ import shutil
 import sys
 import unittest
 
-from framework import init, RunContext
+from framework import cli, RunContext
 
 
 class InitTest(unittest.TestCase):
-    """Unit tests for the init module"""
+    """Unit tests for the init command"""
 
     @classmethod
     def setUpClass(cls):
@@ -29,13 +29,13 @@ class InitTest(unittest.TestCase):
         shutil.rmtree(cls.tmpdir)
         os.chdir(cls._pwd)
 
-    def create(self, package_name):
+    def create(self, package_name, code=0):
         path = os.path.join(self.tmpdir, package_name)
         args = ("grand-pkg-init", "--default", "--quiet", path) 
         with RunContext(*args) as context:
-            init.main()
+            cli.init()
         self.assertEqual(context.err, "")
-        self.assertEqual(context.code, 0)
+        self.assertEqual(context.code, code)
 
     def test_create_simple(self):
         self.create("toto")
@@ -46,8 +46,8 @@ class InitTest(unittest.TestCase):
     def test_create_nested(self):
         self.create(os.path.join("tata", "toto-composite"))
 
-    def test_create_existing(self):
-        self.create("toto")
+    def test_existing(self):
+        self.create("toto", code=1)
 
     def test_import(self):
         path = os.path.join(self.tmpdir, "toto")

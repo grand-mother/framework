@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import os
-from framework import setup_package
+from framework import PKG_PREFIX, setup_package
 
 
 # The package version
 MAJOR = 0
-MINOR = 0
+MINOR = 1
 MICRO = 0
 
 
@@ -14,7 +14,9 @@ MICRO = 0
 # classifiers, see:
 #     https://pypi.org/pypi?%3Aaction=list_classifiers
 EXTRA_CLASSIFIERS = (
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.5"
+    "Programming Language :: Python :: 3.6"
 )
 
 
@@ -32,9 +34,10 @@ def main():
         ),
         entry_points = {
             "console_scripts" : (
-                "grand-pkg-init=framework.init:main",
-                "grand-git-pre-commit=framework.hooks:pre_commit",
-                "grand-git-prepare-commit-msg=framework.hooks:"
+                PKG_PREFIX + "init=framework.cli:init",
+                PKG_PREFIX + "update=framework.cli:update",
+                PKG_PREFIX + "pre-commit=framework.hooks:pre_commit",
+                PKG_PREFIX + "prepare-commit-msg=framework.hooks:"
                     "prepare_commit_msg",)
         },
         package_data = {

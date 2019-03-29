@@ -41,9 +41,10 @@ __all__ = [ "setup_package" ]
 DEFAULT_CLASSIFIERS = """\
 Intended Audience :: Science/Research
 License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)
-Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3.7
 Topic :: Scientific/Engineering
 Operating System :: POSIX
+Operating System :: POSIX :: Linux
 Operating System :: Unix
 Operating System :: MacOS
 """
@@ -103,8 +104,8 @@ def make_version_module(package, version):
     if status and not ("pip-delete-this-directory.txt" in str(status)):
         raise RuntimeError("Dirty git status")
 
-    sha1, author, date = system(
-        "git show -s --format='%H|%cn|%ci' HEAD").split("|")
+    sha1, author, date = map(lambda s: s.strip(), system(
+        "git show -s --format='%H|%cn|%ci' HEAD").split("|"))
     count = system("git rev-list --count HEAD").strip()
 
     content = os.linesep.join((
@@ -252,7 +253,7 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
     meta.update(dict(
         # The maintainer(s) of the package, i.e. those who publish it
         maintainer = "GRAND Developers",
-        maintainer_email = "grand-dev-l@in2p3.fr",
+        maintainer_email = "grand-dev@googlegroups.com",
 
         # The package description
         version = version,
