@@ -27,13 +27,15 @@ def main():
 
         # Vanilla setuptools.setup arguments
         install_requires = (
-            "setuptools>=40.0.0",
-            "wheel>=0.32.0",
+            "astor>=0.7.1",
             "autopep8>=1.4.0",
-            "astor>=0.7.1"
+            "python-editor>=1.0.4",
+            "setuptools>=40.0.0",
+            "wheel>=0.32.0"
         ),
         entry_points = {
             "console_scripts" : (
+                PKG_PREFIX + "config=framework.cli:config",
                 PKG_PREFIX + "init=framework.cli:init",
                 PKG_PREFIX + "update=framework.cli:update",
                 PKG_PREFIX + "pre-commit=framework.hooks:pre_commit",

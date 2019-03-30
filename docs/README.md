@@ -18,14 +18,13 @@ It provides:
 
 #### Command line tools
 
-This utility ships with a set of executables, `grand-pkg-init`, which allows to
-create or update GRAND package, as:
+This utility ships with a set of executables allowing to manage GRAND
+packages, as:
 ```bash
-grand-pkg-init {path/to/new/package | DEFAULTS to "."}
-grand-pkg-update {path/to/existing/package | DEFAULTS to "."}
+grand-pkg-init [path/to/new/package]
+grand-pkg-update [path/to/existing/package]
+grand-pkg-config [--edit] [name] [value]
 ```
-Note that, you'll need to answer a few questions in order to configure a
-new GRAND package.
 
 #### Web integration
 
@@ -52,18 +51,15 @@ Alternatively, the latest commit of this package can be installed directly from
 pip3 install --user git+https://github.com/grand-mother/framework.git@master
 ```
 
-Installing packages to the user space (`--user`) requires the corresponding path
-being in your `PATH` and `PYTHONPATH` environment variables.  Depending on your
-OS & its version, this might be already done. If not, you can manually edit your
-`.bashrc`. The user space location depends on the OS.  on Linux the path can be
-updated as:
+Installing binaries to the user space (`--user`) requires the corresponding path
+being in your `PATH` environment variable.  Depending on your OS & its version,
+this might be already done. If not, you can manually edit your `.bashrc`. The
+user space location depends on the OS.  on Linux the path can be updated as:
 ```bash
-export PYTHONPATH=/home/$(whoami)/.local/lib/python3.*/site-packages/:$PYTHONPATH
 export PATH=/home/$(whoami)/.local/bin/:$PATH
 ```
 On OSX use the following:
 ```bash
-export PYTHONPATH=/users/$(whoami)/Library/Python/3.*/lib/site-packages/:$PYTHONPATH
 export PATH=/users/$(whoami)/Library/Python/3.*/bin/:$PATH
 ```
 

@@ -686,15 +686,16 @@ def pre_commit():
         print()
         sys.exit(1)
 
-    try:
-        count = stats["framework"]["git"]["count"]
-    except KeyError:
-        pass
-    else:
-        if __git__["count"] < count:
-            _inform("A framework update is required. Aborting...")
-            print()
-            sys.exit(1)
+    if stats["package"]["name"] != "framework":
+        try:
+            count = stats["framework"]["git"]["count"]
+        except KeyError:
+            pass
+        else:
+            if __git__["count"] < count:
+                _inform("A framework update is required. Aborting...")
+                print()
+                sys.exit(1)
 
     # Update the stats
     analyse_package(package_dir, stats)
