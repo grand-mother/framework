@@ -643,7 +643,7 @@ def update_readme(package_dir, stats):
     add_badge(
         "PyPi version",
         "https://pypi.org/project/" + dist_name,
-        "pypi/v/{:}.svg", shield=dist_name)
+        "pypi/v/{:}.svg", shield=(dist_name,))
 
     path = os.path.join(package_dir, "README.md")
     with open(path, "w") as f:

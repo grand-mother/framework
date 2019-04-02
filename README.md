@@ -8,7 +8,7 @@
 [![Code coverage](https://codecov.io/gh/grand-mother/framework/branch/master/graph/badge.svg)](https://codecov.io/gh/grand-mother/framework)
 [![Build status](https://travis-ci.com/grand-mother/framework.svg?branch=master)](https://travis-ci.com/grand-mother/framework)
 [![Documentation](https://img.shields.io/badge/docs-48%25-yellow.svg)](https://grand-mother.github.io/site/reports.html?framework/docs)
-[![PyPi version](https://img.shields.io/pypi/v/g.svg)](https://pypi.org/project/grand-framework)
+[![PyPi version](https://img.shields.io/pypi/v/grand-framework.svg)](https://pypi.org/project/grand-framework)
 
 # Framework
 _Common framework for GRAND packages_
