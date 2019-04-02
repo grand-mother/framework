@@ -1,6 +1,6 @@
 [run]
 branch = True
-include = */framework/*.py
+include = */grand_pkg/*.py
 
 [report]
 exclude_lines =

@@ -744,6 +744,7 @@ def config(args=None):
 
     # Update the package data
     d = pkg_data["package"]
+    old_name = d["name"]
     before = hash(json.dumps(d))
     d.update(obj)
     if hash(json.dumps(d)) == before:
@@ -755,6 +756,38 @@ def config(args=None):
 
     system = _quiet_system if args.quiet else os.system
     system("git add " + PKG_FILE)
+
+    package_name = d["name"]
+    if old_name != package_name:
+        # Rename the source folder
+        old = os.path.join(package_dir, old_name)
+        new = os.path.join(package_dir, package_name)
+        system("git mv {:} {:}".format(old, new))
+
+        # Regenerate some named package files
+        path = os.path.join(package_dir, ".coveragerc")
+        _write_coverage_config(path, package_name)
+
+        src_dir = os.path.join(package_dir, package_name)
+        path = os.path.join(src_dir, "__init__.py")
+        _write_source(path, d["description"])
+
+        tests_dir = os.path.join(package_dir, "tests")
+        path = os.path.join(tests_dir, "__init__.py")
+        _write_tests_init(path, package_name)
+
+        path = os.path.join(tests_dir, "__main__.py")
+        _write_tests_main(path, package_name)
+
+        path = os.path.join(tests_dir, "test_version.py")
+        _write_tests_version(path, package_name)
+
+    # Update the default README
+    path = os.path.join(package_dir, "docs", "README.md")
+    title = package_name.replace("_", " ").replace("-", " ").capitalize()
+    _write_readme(path, d["git-name"], d["dist-name"], title,
+                  d["description"])
+
     sys.exit(0)
 
 
