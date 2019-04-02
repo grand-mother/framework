@@ -128,7 +128,7 @@ _{description:}_
 
 ## Installation
 
-_GRAND packages require python3.7. If can be installed from the
+_GRAND packages require python3.7. It can be installed from the
 [tarball](https://www.python.org/downloads) on Linux or with brew on OSX._
 
 The latest stable version of this package can be installed from [PyPi][PYPI]
