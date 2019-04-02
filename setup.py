@@ -15,7 +15,7 @@ MICRO = 0
 #     https://pypi.org/pypi?%3Aaction=list_classifiers
 EXTRA_CLASSIFIERS = (
     "Development Status :: 4 - Beta",
-    "Programming Language :: Python :: 3.5"
+    "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6"
 )
 
