@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-from framework import PKG_PREFIX, setup_package
+from grand_pkg import PKG_PREFIX, setup_package
 
 
 # The package version
 MAJOR = 0
 MINOR = 1
-MICRO = 2
+MICRO = 3
 
 
 # Extra package meta data can be added here. For a full list of available
@@ -35,15 +35,15 @@ def main():
         ),
         entry_points = {
             "console_scripts" : (
-                PKG_PREFIX + "config=framework.cli:config",
-                PKG_PREFIX + "init=framework.cli:init",
-                PKG_PREFIX + "update=framework.cli:update",
-                PKG_PREFIX + "pre-commit=framework.hooks:pre_commit",
-                PKG_PREFIX + "prepare-commit-msg=framework.hooks:"
+                PKG_PREFIX + "config=grand_pkg.cli:config",
+                PKG_PREFIX + "init=grand_pkg.cli:init",
+                PKG_PREFIX + "update=grand_pkg.cli:update",
+                PKG_PREFIX + "pre-commit=grand_pkg.hooks:pre_commit",
+                PKG_PREFIX + "prepare-commit-msg=grand_pkg.hooks:"
                     "prepare_commit_msg",)
         },
         package_data = {
-            "framework": [os.path.join("data", file_) for file_ in (
+            "grand_pkg": [os.path.join("data", file_) for file_ in (
                 "LICENSE", "COPYING.LESSER", "MANIFEST.in", ".gitignore",
                 ".travis.yml")]
         }

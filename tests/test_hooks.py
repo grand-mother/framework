@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for the framework.hooks module
+Unit tests for the grand_pkg.hooks module
 """
 
 import os
 import shutil
 import unittest
 
-from framework import PKG_FILE, hooks, RunContext
+from grand_pkg import PKG_FILE, hooks, RunContext
 
 
 class HooksTest(unittest.TestCase):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for the framework.init module
+Unit tests for the grand_pkg.cli module
 """
 
 import json
@@ -9,7 +9,7 @@ import shutil
 import sys
 import unittest
 
-from framework import cli, RunContext
+from grand_pkg import cli, RunContext
 
 
 class CLITest(unittest.TestCase):

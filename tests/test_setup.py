@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for the framework.setup module
+Unit tests for the grand_pkg.setup module
 """
 
 import os
@@ -8,7 +8,7 @@ import unittest
 
 import setup
 
-from framework import RunContext
+from grand_pkg import RunContext
 
 
 class SetupTest(unittest.TestCase):

@@ -26,7 +26,7 @@ before_install:
 
 install:
   - if [[ $COVERAGE ]]; then $PIP install codecov; fi
-  - $PIP install git+https://github.com/grand-mother/framework.git@master
+  - $PIP install git+https://github.com/grand-mother/pkg.git@master
   - $PYTHON setup.py install --user --prefix=
 
 script:

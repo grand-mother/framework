@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Run all unit tests for the framework package
+Run all unit tests for the GRAND package manager
 """
 import os
 import unittest

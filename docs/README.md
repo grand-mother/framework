@@ -1,5 +1,5 @@
-# Framework
-_Common framework for GRAND packages_
+# GRAND PKG
+_Package manager for GRAND_
 
 
 ## Description
@@ -42,13 +42,13 @@ The GRAND package manager uses [pip][PIP] and [PyPi][PYPI] in order to keep
 packages up-to-date. Therefore it is recommended to install it to your system
 as:
 ```bash
-pip3 install --user grand-framework
+pip3 install --user grand-pkg
 ```
 Alternatively, the latest commit of this package can be installed directly from
 [GitHub][GITHUB], as:
 
 ```bash
-pip3 install --user git+https://github.com/grand-mother/framework.git@master
+pip3 install --user git+https://github.com/grand-mother/pkg.git@master
 ```
 
 Installing binaries to the user space (`--user`) requires the corresponding path
@@ -89,8 +89,8 @@ The GRAND software is distributed under the LGPL-3.0 license. See the provided
 [`LICENSE`][LICENSE] and [`COPYING.LESSER`][COPYING] files.
 
 
-[COPYING]: https://github.com/grand-mother/framework/blob/master/COPYING.LESSER
-[GITHUB]: https://github.com/grand-mother/framework
-[LICENSE]: https://github.com/grand-mother/framework/blob/master/LICENSE
+[COPYING]: https://github.com/grand-mother/pkg/blob/master/COPYING.LESSER
+[GITHUB]: https://github.com/grand-mother/pkg
+[LICENSE]: https://github.com/grand-mother/pkg/blob/master/LICENSE
 [PIP]: https://pypi.org/project/pip
-[PYPI]: https://pypi.org/project/grand-framework
+[PYPI]: https://pypi.org/project/grand-pkg
