@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 """
 
 import argparse
+import datetime
 import editor
 import json
 import os
@@ -170,7 +171,7 @@ def _write_source(path, description):
 """
 {:}
 
-Copyright (C) 2018 The GRAND collaboration
+Copyright (C) {:} The GRAND collaboration
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -195,7 +196,7 @@ except ImportError:
     __git__ = {{}}
 
 # Initialise the package below
-'''.format(description)
+'''.format(description, datetime.date.today().year)
 
     with open(path, "w") as f:
         f.write(content)
