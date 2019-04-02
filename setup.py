@@ -7,7 +7,7 @@ from grand_pkg import PKG_PREFIX, setup_package
 # The package version
 MAJOR = 0
 MINOR = 1
-MICRO = 3
+MICRO = 4
 
 
 # Extra package meta data can be added here. For a full list of available

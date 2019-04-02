@@ -634,6 +634,20 @@ def update(args=None):
             json.dump(stats, f)
         system("git add " + PKG_FILE)
 
+        # Update the setup file and the tests
+        path = os.path.join(package_dir, "setup.py")
+        _write_setup(package_dir)
+
+        tests_dir = os.path.join(package_dir, "tests")
+        path = os.path.join(tests_dir, "__init__.py")
+        _write_tests_init(path, package_name)
+
+        path = os.path.join(tests_dir, "__main__.py")
+        _write_tests_main(path, package_name)
+
+        path = os.path.join(tests_dir, "test_version.py")
+        _write_tests_version(path, package_name)
+
     # Exit to the OS
     sys.exit(code)
 
