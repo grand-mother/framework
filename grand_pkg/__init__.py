@@ -27,6 +27,18 @@ except ImportError:
     __git__ = {}
 
 
+# Raise an explicit error if Python2 is used
+def _check_version():
+    import os
+    import sys
+
+    if sys.version_info[0] < 3:
+        sys.stderr.write("fatal: grand-pkg requires Python3" + os.linesep)
+        sys.exit(1)
+
+_check_version()
+
+
 # Package globals
 PKG_FILE = ".grand-pkg.json"
 """File where GRAND package specific data are stored"""
