@@ -245,8 +245,29 @@ def _write_tests_init(path, package_name):
     content = '''\
 # -*- coding: utf-8 -*-
 """
-Unit tests for the {:} package
+Unit tests for the {0:} package
 """
+
+import doctest
+import os
+import unittest
+
+__all__ = ["additional_test"]
+
+
+def additional_tests():
+    """Tests for the doc examples"""
+    suite = unittest.TestSuite()
+    dirname = os.path.join(os.path.dirname(__file__), "..")
+    for root, _, filenames in os.walk(os.path.join(dirname, "{0:}")):
+        for filename in filenames:
+            if filename == '__init__.py' or filename[-3:] != '.py':
+                continue
+            module = os.path.join(os.path.relpath(root, dirname), filename)
+            module = module.replace('/', '.')
+            module = module[:-3]
+            suite.addTest(doctest.DocTestSuite(module))
+    return suite
 '''.format(package_name)
 
     with open(path, "w") as f:
@@ -265,12 +286,25 @@ import os
 import unittest
 import sys
 
+try:
+    from . import additional_tests
+except ImportError:
+    # This is a hack for a bug in `coverage` that does not support relative
+    # imports from the __main__
+    path = os.path.abspath(os.path.dirname(__file__))
+    sys.path.append(path)
+    from tests import additional_tests
+
 
 def suite():
     test_loader = unittest.TestLoader()
     path = os.path.dirname(__file__)
     test_suite = test_loader.discover(path, pattern="test_*.py")
-    return test_suite
+
+    for test in additional_tests():
+        suite.addTest(test)
+
+    return suite
 
 
 if __name__ == "__main__":
@@ -401,7 +435,16 @@ class _Logger:
 
 
 def init(args=None):
-    """Initialise a bare GRAND package"""
+    """Initialise a bare GRAND package
+
+    Parameters
+    ----------
+    args : list of str, optionnal
+        List of command line arguments
+
+    If no *args* are provided, arguments are read from teh command line, I.e.
+    (`sys.argv`).
+    """
 
     parser = argparse.ArgumentParser(
         description='Initialise a bare GRAND package.')

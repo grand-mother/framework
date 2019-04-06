@@ -7,7 +7,7 @@
 [![Coding style](https://img.shields.io/badge/pep8-86%25-brightgreen.svg)](https://github.com/grand-mother/pkg/blob/master/docs/.grand-pkg.json)
 [![Code coverage](https://codecov.io/gh/grand-mother/pkg/branch/master/graph/badge.svg)](https://codecov.io/gh/grand-mother/pkg)
 [![Build status](https://travis-ci.com/grand-mother/pkg.svg?branch=master)](https://travis-ci.com/grand-mother/pkg)
-[![Documentation](https://img.shields.io/badge/docs-47%25-yellow.svg)](https://grand-mother.github.io/site/reports.html?pkg/docs)
+[![Documentation](https://img.shields.io/badge/docs-48%25-yellow.svg)](https://grand-mother.github.io/site/reports.html?pkg/docs)
 [![PyPi version](https://img.shields.io/pypi/v/grand-pkg.svg)](https://pypi.org/project/grand-pkg)
 
 # GRAND PKG
