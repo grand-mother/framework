@@ -202,7 +202,6 @@ def gather_doc(package_dir, package_name):
 
     re_section = re.compile(
         "{0:} *(\\w*) *[:]? *{0:} *---* *{0:}".format(os.linesep))
-    re_arg = re.compile("([*]*\\w*) *[:]? *(.*)")
 
     def get_function_doc(path, prefix, node):
         """Parse a function or method docstring in numpy style"""
@@ -259,10 +258,10 @@ def gather_doc(package_dir, package_name):
                 items = get_items(body)
                 args = meta[title]
                 for item in items:
-                    m = re_arg.match(item[0])
-                    if m is None:
+                    m = item[0].split(":", 1)
+                    if len(m) != 2:
                         continue
-                    name, types = m.groups()
+                    name, types = map(lambda s:s.strip(), m)
                     if name in args:
                         args[name] = (types, item[1])
                     else:
@@ -273,12 +272,12 @@ def gather_doc(package_dir, package_name):
                 items = get_items(body)
                 rets = []
                 for item in items:
-                    m = re_arg.match(item[0])
-                    if m is None:
-                        continue
-                    name, types = m.groups()
-                    if len(types) == 0:
-                        name, types = types, name
+                    m = item[0].split(":", 1)
+                    if len(m) == 2:
+                        name, types = map(lambda s:s.strip(), m)
+                    else:
+                        types = item[0].strip()
+                        name = ""
                     rets.append((types, item[1], name))
                     increment_tokens(path)
                 meta[title] = rets
@@ -305,8 +304,7 @@ def gather_doc(package_dir, package_name):
 
         doc = ast.get_docstring(module, clean=True)
         if doc is not None:
-            doc = doc.split(
-                "\n\nCopyright (C) 2018 The GRAND collaboration", 1)[0]
+            doc = doc.split("\n\nCopyright (C)", 1)[0]
         data["doc"] = doc
 
         classes, definitions, functions, imports = {}, {}, {}, {}
