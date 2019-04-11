@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 import glob
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -131,6 +132,8 @@ def make_version_module(package, version):
     with open(path, "w+") as f:
         f.write(content)
 
+    return sha1
+
 
 def get_meta():
     """Load the package meta_data"""
@@ -220,16 +223,28 @@ def setup_package(file_, numeric_version, extra_classifiers=None, **kwargs):
     if not clean:
         # Make the version module. Note that this will check the git
         # status as Well
-        make_version_module(package_name, version)
+        sha1 = make_version_module(package_name, version)
 
     # Merge the classifiers
     all_classifiers = [s for s in DEFAULT_CLASSIFIERS.splitlines() if s]
     if extra_classifiers is not None:
         all_classifiers += extra_classifiers
 
-    # Extra package meta data
+    # Load the description
     with open(os.path.join(_PACKAGE_DIR, "README.md")) as f:
         long_description = f.read()
+
+    if not clean:
+        # Prune the doc for PyPI
+        img = "https://img.shields.io/badge/GitHub-{:}-blue.svg".format(
+            sha1[:7])
+        url = "https://github.com/grand-mother/{:}/tree/{:}".format(
+            git_name, sha1)
+        badge = "[![GitHub hash]({:})]({:})".format(img, url)
+        long_description = re.sub("\[!\[PyPi version\].*", badge,
+                                  long_description)
+
+    # Extra package meta data
     meta.update(dict(
         # The maintainer(s) of the package, i.e. those who publish it
         maintainer = "GRAND Developers",
