@@ -297,9 +297,10 @@ except ImportError:
 
 
 def suite():
+    # Load the unit tests
     test_loader = unittest.TestLoader()
     path = os.path.dirname(__file__)
-    test_suite = test_loader.discover(path, pattern="test_*.py")
+    suite = test_loader.discover(path, pattern="test_*.py")
 
     for test in additional_tests():
         suite.addTest(test)
@@ -669,6 +670,12 @@ def update(args=None):
         update_data = True
         stats["package"] = meta
 
+    # Patch the tests/__main__.py
+    tests_dir = os.path.join(package_dir, "tests")
+    package_name = stats["package"]["name"]
+    path = os.path.join(tests_dir, "__main__.py")
+    _write_tests_main(path, package_name)
+
     if update_data:
         old_path = os.path.join(package_dir, ".stats.json")
         if os.path.exists(old_path):
@@ -682,12 +689,8 @@ def update(args=None):
         path = os.path.join(package_dir, "setup.py")
         _write_setup(package_dir)
 
-        tests_dir = os.path.join(package_dir, "tests")
         path = os.path.join(tests_dir, "__init__.py")
         _write_tests_init(path, package_name)
-
-        path = os.path.join(tests_dir, "__main__.py")
-        _write_tests_main(path, package_name)
 
         path = os.path.join(tests_dir, "test_version.py")
         _write_tests_version(path, package_name)
